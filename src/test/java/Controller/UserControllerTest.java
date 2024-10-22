@@ -7,10 +7,13 @@ import com.cosmeticPlatform.CosmeticPlatform.model.request.UserRequestDTO;
 import com.cosmeticPlatform.CosmeticPlatform.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import javax.validation.ValidationException;
 import java.util.List;
@@ -19,18 +22,24 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class UserControllerTest {
 
     @Mock
     private UserService userService;
-    @Mock
-    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UserController userController;
 
+    @Mock
+    private MockMvc mockMvc;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
+    void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
     }
 
     @Test
@@ -48,10 +57,12 @@ public class UserControllerTest {
         user.setPassword("hashedPassword");  // Burada hashlenmiş şifre kullanılıyor
         user.setUserType(UserType.CLIENT);
 
+        when(passwordEncoder.encode("password123")).thenReturn("hashedPassword");
         when(userService.addUser(any(User.class))).thenReturn(user);
 
         // When
-        User result = userController.addUser(userRequestDTO);
+        User result;
+        result = userController.addUser(userRequestDTO);
 
         // Then
         assertNotNull(result);
@@ -78,7 +89,8 @@ public class UserControllerTest {
         when(userService.addUser(any(User.class))).thenThrow(new ValidationException("Bu email ile kayıtlı kullanıcı var."));
 
         // When & Then
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
+        ValidationException exception;
+        exception = assertThrows(ValidationException.class, () -> {
             userController.addUser(userRequestDTO);
         });
 

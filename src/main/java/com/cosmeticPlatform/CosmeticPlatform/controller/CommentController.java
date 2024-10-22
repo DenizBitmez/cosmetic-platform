@@ -38,8 +38,8 @@ public class CommentController {
     @DeleteMapping("/delete/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Comment deleteComment(@PathVariable Long id){
-         commentService.deleteComment(id);
-        return null;
+        return commentService.deleteComment(id);
+//        return null;
     }
 
     @GetMapping("/all")

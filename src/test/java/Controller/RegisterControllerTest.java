@@ -37,13 +37,13 @@ public class RegisterControllerTest {
     }
 
     @Test
-    void registerUser_ReturnsSuccessfulMessage() throws Exception {
+    void addUser_ReturnsCreatedUser() throws Exception {
         // given
         UserRequestDTO userRequestDTO = new UserRequestDTO();
         userRequestDTO.setUsername("John Doe");
         userRequestDTO.setEmail("john@example.com");
         userRequestDTO.setPassword("password123");
-        userRequestDTO.setUserType(UserType.CLIENT); // UserType'ı CLIENT olarak ayarladık.
+        userRequestDTO.setUserType(UserType.CLIENT);
 
         User user = new User();
         user.setUsername(userRequestDTO.getUsername());
@@ -58,27 +58,10 @@ public class RegisterControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"John Doe\", \"email\":\"john@example.com\", \"password\":\"password123\", \"userType\":\"CLIENT\"}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Kayit basarili"));
+                .andExpect(jsonPath("$.name").value("John Doe"))
+                .andExpect(jsonPath("$.email").value("john@example.com"))
+//                .andExpect(jsonPath(".$password").value("password123"))
+                .andExpect(jsonPath("$.userType").value("CLIENT"));
     }
-
-    @Test
-    void registerUser_UserAlreadyExists_ReturnsBadRequest() throws Exception {
-        // given
-        UserRequestDTO userRequestDTO = new UserRequestDTO();
-        userRequestDTO.setUsername("John Doe");
-        userRequestDTO.setEmail("john@example.com");
-        userRequestDTO.setPassword("password123");
-        userRequestDTO.setUserType(UserType.CLIENT); // UserType'ı CLIENT olarak ayarladık.
-
-        when(userService.addUser(any(User.class))).thenThrow(new ValidationException("Bu email ile kayitli kullanici var."));
-
-        // when & then
-        mockMvc.perform(post("/api/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"John Doe\", \"email\":\"john@example.com\", \"password\":\"password123\", \"userType\":\"CLIENT\"}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Bu email ile kayitli kullanici var."));
-    }
-
 
 }

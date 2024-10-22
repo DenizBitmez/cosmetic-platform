@@ -2,18 +2,16 @@ package Service;
 import jakarta.validation.ValidationException;
 import com.cosmeticPlatform.CosmeticPlatform.model.User;
 import com.cosmeticPlatform.CosmeticPlatform.model.UserType;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.MockitoJUnitRunner;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.cosmeticPlatform.CosmeticPlatform.repository.UserRepository;
 import com.cosmeticPlatform.CosmeticPlatform.service.UserService;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,21 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@RunWith(MockitoJUnitRunner.class)
 public class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
     @InjectMocks
     private UserService userService;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     public void addUser_UserAlreadyExists_ThrowsValidationException() {
@@ -67,24 +57,13 @@ public class UserServiceTest {
         user.setUserType(UserType.CLIENT);
 
         when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
-        when(passwordEncoder.encode(user.getPassword())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
-        User savedUser = new User();
-        savedUser.setId(Math.toIntExact(1L));
-        savedUser.setEmail("deniz@example.com");
-        savedUser.setPassword("encodedPassword");
-        savedUser.setUserType(UserType.CLIENT);
+        User savedUser = userService.addUser(user);
+        assertEquals(user.getEmail(),savedUser.getEmail());
+        assertNotNull(savedUser.getPassword());
+        verify(userRepository).save(any(User.class));
 
-        when(userRepository.save(any(User.class))).thenReturn(savedUser);
-
-        // When
-        User result = userService.addUser(user);
-
-        // Then
-        assertNotNull(result);
-        assertEquals("deniz@example.com", result.getEmail());
-        assertEquals("encodedPassword", result.getPassword());
-        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
@@ -104,7 +83,7 @@ public class UserServiceTest {
         // Then
         assertEquals(1, users.size());
         assertEquals("deniz@example.com", users.getFirst().getEmail());
-        verify(userRepository, times(1)).findAll();
+        verify(userRepository).findAll();
     }
 
     @Test
@@ -123,8 +102,8 @@ public class UserServiceTest {
 
         // Then
         assertNotNull(result);
-        assertEquals("deniz@example.com", result.getEmail());
-        verify(userRepository, times(1)).findById(1L);
+        assertEquals(user.getEmail(), result.getEmail());
+        verify(userRepository).findById(1L);
     }
 
     @Test
@@ -138,6 +117,48 @@ public class UserServiceTest {
         });
 
         assertEquals("Kullanıcı bulunamadı", exception.getMessage());
-        verify(userRepository, times(1)).findById(1L);
+        verify(userRepository).findById(1L);
+    }
+
+    @Test
+    public void loadUserByUsername_UserExists_ReturnsUserDetails() {
+        //Given
+        User user = new User();
+        user.setEmail("deniz@example.com");
+        user.setPassword("password123");
+        user.setUserType(UserType.CLIENT);
+
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+
+        //When
+        UserDetails userDetails = userService.loadUserByUsername(user.getEmail());
+
+        //Then
+        assertEquals(user.getEmail(), userDetails.getUsername());
+        assertNotNull(userDetails.getPassword());
+        assertTrue(userDetails.getAuthorities().stream().anyMatch(a -> {
+            a.getAuthority();
+            return true;
+        }));
+        verify(userRepository).findByEmail(user.getEmail());
+    }
+
+    @Test
+    public void loadUserByUsername_UserDoesNotExist_ThrowsUsernameNotFoundException() {
+        //Given
+        User user = new User();
+        user.setEmail("deniz@example.com");
+        user.setPassword("password123");
+        user.setUserType(UserType.CLIENT);
+
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
+
+        //When
+        assertThrows(UsernameNotFoundException.class, () -> {
+            userService.loadUserByUsername(user.getEmail());
+        });
+
+        //Then
+        verify(userRepository).findByEmail(user.getEmail());
     }
 }

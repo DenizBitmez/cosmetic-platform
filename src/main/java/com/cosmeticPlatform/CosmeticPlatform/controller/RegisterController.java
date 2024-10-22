@@ -3,15 +3,12 @@ package com.cosmeticPlatform.CosmeticPlatform.controller;
 import jakarta.validation.Valid;
 import com.cosmeticPlatform.CosmeticPlatform.model.User;
 import com.cosmeticPlatform.CosmeticPlatform.model.request.UserRequestDTO;
-import jakarta.validation.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.cosmeticPlatform.CosmeticPlatform.service.UserService;
 
 @RestController
-    @RequestMapping("/api/register")
+    @RequestMapping("/api")
     public class RegisterController {
     private final UserService userService;
 
@@ -20,14 +17,15 @@ import com.cosmeticPlatform.CosmeticPlatform.service.UserService;
         this.userService = userService;
     }
 
-    @PostMapping
-    public ResponseEntity<String> registerUser(@RequestBody User user) {
-        try {
-            userService.addUser(user);
-            return ResponseEntity.ok("Kayit basarili");
-        } catch (ValidationException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    @PostMapping("/register")
+    public User addUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
+            User user=new User();
+            user.setUsername(userRequestDTO.getUsername());
+            user.setEmail(userRequestDTO.getEmail());
+            user.setPassword(userRequestDTO.getPassword());
+            user.setUserType(userRequestDTO.getUserType());
+            return userService.addUser(user);
+
     }
 }
 

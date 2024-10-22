@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
 
 @Entity
 @Table(name = "user")
@@ -19,7 +18,7 @@ public class User {
 
     private String username;
 
-    @JsonIgnore // Şifrenin gizlenmesi için
+//    @JsonIgnore // Şifrenin gizlenmesi için
     private String password;
 
     @Column(unique = true)
@@ -28,11 +27,11 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserType userType;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Comment> comments;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Rating> ratings;
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+//    private List<Comment> comments;
+//
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+//    private List<Rating> ratings;
 
 
 }

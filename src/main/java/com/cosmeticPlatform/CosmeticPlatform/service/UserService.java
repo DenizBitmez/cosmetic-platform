@@ -1,6 +1,5 @@
 package com.cosmeticPlatform.CosmeticPlatform.service;
 
-
 import jakarta.validation.ValidationException;
 import com.cosmeticPlatform.CosmeticPlatform.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.cosmeticPlatform.CosmeticPlatform.repository.UserRepository;
 
@@ -29,7 +27,7 @@ public class UserService implements UserDetailsService {
         if (userRepository.existsByEmail(user.getEmail())){
             throw new ValidationException("Bu email ile kayıtlı kullanıcı var.");
         }
-
+        user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -42,6 +40,9 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
     }
 
+    //güncelleme silme
+
+    @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

@@ -31,8 +31,8 @@ public class ProductService {
         existingProduct.setName(updatedProduct.getName());
         existingProduct.setId(updatedProduct.getId());
         existingProduct.setCategory(updatedProduct.getCategory());
-        existingProduct.setComments(updatedProduct.getComments());
-        existingProduct.setRatings(updatedProduct.getRatings());
+//        existingProduct.setComments(updatedProduct.getComments());
+//        existingProduct.setRatings(updatedProduct.getRatings());
         return productRepository.save(existingProduct);
     }
 

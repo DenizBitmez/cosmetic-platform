@@ -2,7 +2,6 @@ package com.cosmeticPlatform.CosmeticPlatform.controller;
 
 import com.cosmeticPlatform.CosmeticPlatform.model.User;
 import com.cosmeticPlatform.CosmeticPlatform.model.request.UserRequestDTO;
-import com.cosmeticPlatform.CosmeticPlatform.util.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,7 +30,7 @@ public class UserController {
         user.setUsername(userRequestDTO.getUsername());
         user.setUserType(userRequestDTO.getUserType());
         user.setEmail(userRequestDTO.getEmail());
-        user.setPassword(PasswordUtil.hashPassword(userRequestDTO.getPassword()));
+        user.setPassword(userRequestDTO.getPassword());
         String hashedPassword = passwordEncoder.encode(userRequestDTO.getPassword());
         user.setPassword(hashedPassword);
         return userService.addUser(user);

@@ -37,8 +37,8 @@ public class RatingService {
             throw new IllegalArgumentException("Puan 0 ile 5 arasında olmalı.");
         }
         Rating rating=new Rating();
-        rating.setUser(user);
-        rating.setProduct(product);
+        rating.setId(rating.getId());
+//        rating.setProduct(product);
         rating.setScore(score);
         return ratingRepository.save(rating);
     }

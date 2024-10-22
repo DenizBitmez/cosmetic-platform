@@ -19,12 +19,12 @@ public class Payment {
 
     private double amount;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;//ödeme kime yapıldı
-
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;//hangi ürün için yapıldı.
+//    @ManyToOne
+//    @JoinColumn(name = "user_id")
+//    private User user;//ödeme kime yapıldı
+//
+//    @ManyToOne
+//    @JoinColumn(name = "product_id")
+//    private Product product;//hangi ürün için yapıldı.
 
 }
