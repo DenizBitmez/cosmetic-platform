@@ -1,213 +1,148 @@
+# Cosmetic Platform  
 
-# Cosmetic Platform
+This project was developed as part of the **Gelecek Hayalim Java Backend Training Final Project**. It is a cosmetic platform built using **Java Spring Boot**, with essential functionalities for product management, user interactions, and authentication. The project utilizes **Docker, Maven, JUnit, and Mockito** for containerization, dependency management, and testing.
 
-Bu projede bir kozmetik platformu oluşturularak bazı işlemler yapılması amaçlanmıştır. Projede üç rol bulunmaktadır.
+---
 
-Uzman: Ürün içeriklerini girebilir, yorum yapabilir ve puanlama verebilir.
+## Features  
 
-Müşteri: Ürün deneyimlerini paylaşmak için yorum yapabilir ve puanlama verebilir.
+The platform provides three roles:  
 
-Admin: Platformun genel yönetimini yapabilir, kullanıcı ve ürün işlemlerini düzenleyebilir.
+- **Expert:** Can add product details, write reviews, and provide ratings.  
+- **Customer:** Can share product experiences by adding comments and ratings.  
+- **Admin:** Manages the platform, including user accounts and product operations.  
 
-## Projede Bulunan Özellikler
+### Core Functionalities:  
+- **Product Management:** Experts can add and edit product information.  
+- **Reviews & Ratings:** Both experts and customers can leave feedback and update or delete their comments.  
+- **Authorization System:** Each role has specific permissions—only experts can add product details, while admins oversee platform operations.  
+- **REST API:** Provides endpoints for managing products, users, reviews, and ratings.  
+- **Database Operations:** CRUD operations are implemented using **Spring Data JPA** and MySQL.  
 
-Ürün Yönetimi: Uzmanlar ürünlerin içerik bilgilerini girebilir ve düzenleyebilir.
+---
 
-Yorum ve Puanlama: Hem uzmanlar hem de müşteriler ürünler için yorum yapabilir, puanlama verebilir, yorumlarını güncelleyebilir veya silebilir.
+## Technologies Used  
 
-Yetkilendirme: Her rol için belirli yetkilendirmeler yapılmıştır. Örneğin, sadece uzmanlar ürün içeriklerini girebilir, admin ise platformun genel yönetimini yapar.
+- **Java Spring Boot** – Framework for RESTful API development.  
+- **MySQL** – Database management system.  
+- **JWT (JSON Web Token)** – Used for authentication and authorization.  
+- **Docker** – Containerized deployment for isolated environments.  
+- **Maven** – Dependency and build management.  
+- **JUnit & Mockito** – Unit testing framework to ensure code reliability.  
 
-REST API: Ürün, kullanıcı, yorum ve puanlama işlemleri için RESTful API servisleri sunulmaktadır.
+---
 
-Veritabanı işlemleri: Spring Data JPA kullanılarak CRUD işlemleri yapıldı.
+## Installation Guide  
 
-## Kullanılan Teknolojiler
+### Requirements:  
+- Java 17 or later  
+- Maven  
+- MySQL  
+- Docker (Optional)  
 
-Java Spring Boot: Restful Apı kullanmak için eklendi.
+### Steps:  
 
-MySQL: Veritabanı yönetim sistemi olarak kullanılmıştır.
+#### Clone the repository:  
+```bash
+git clone https://github.com/username/cosmetic-platform.git
+cd cosmetic-platform
+```
 
-JWT: Kimlik doğrulama ve yetkilendirme işlemleri için JSON Web Token kullanılmıştır.
+#### Configure the database:  
+Create a new database in MySQL:  
+```sql
+CREATE DATABASE cosmetic_platform;
+```
 
-Docker: Geliştirme ortamını containerize etmek için kullanılmıştır.
-
-JUnit ve Mockito: Birim testler için kullanıldı.
-Kurulum
-
-## Gereksinimler
-
-Java 17 veya daha üstü
-
-Maven
-
-MySQL
-
-Docker (Opsiyonel)
-
-## Adımlar
-
-### 1. Proje dosyalarını klonlayın:
-
-
-`git clone https://github.com/kullaniciadi/kozmetik-platformu.git
-cd kozmetik-platformu
-`
-### 2. Veritabanı yapılandırması:
-
-MySQL üzerinde bir veritabanı oluşturun:
-
-`CREATE DATABASE kozmetik_platformu;
-`
-
-`src/main/resources/application.properties` dosyasındaki veritabanı bağlantı ayarlarını güncelleyin:
-
-`spring.datasource.url=jdbc:mysql://localhost:3306/kozmetik_platformu 
-
+Update the database settings in `src/main/resources/application.properties`:  
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/cosmetic_platform
 spring.datasource.username=user
+spring.datasource.password=password
+```
 
-spring.datasource.password=password`
-
-### 3. Projeyi derleyin ve çalıştırın:
-
-`mvn clean install
-
+#### Build and run the project:  
+```bash
+mvn clean install
 mvn spring-boot:run
-`
+```
 
-### 4. API'leri test edin:
-Proje ayağa kalktıktan sonra, aşağıdaki örnek URL'leri kullanarak Postman veya benzeri bir araçla API'leri test edebilirsiniz:
+#### Test the API endpoints:  
+Once the project is running, you can test the API using **Postman** or similar tools.  
 
-**Ürün Ekleme** (Sadece uzmanlar):
+Example: **Add a Product** (Experts only):  
+```http
+POST /api/product
+```
 
-`POST /api/product
-`
+Example: **Add a Review**:  
+```http
+POST /api/product/{productId}/comment
+```
 
-**Yorum Ekleme**:
+---
 
-`POST /api/product/{productId}/comment
-`
+## Running with Docker (Optional)  
 
-## Docker ile Çalıştırma (Opsiyonel)
+If you want to run the project inside a Docker container:  
 
-Projeyi Docker ile çalıştırmak isterseniz:
+#### Build and run the Docker container:  
+```bash
+docker-compose up --build
+```
+#### The database tables will be automatically set up inside the container.  
 
-### 1. Docker container'ını oluşturun ve çalıştırın:
+---
 
-`docker-compose up --build
-`
-### 2. Docker ile veritabanı tabloları otomatik olarak yüklenecektir.
+## API Endpoints  
 
-## API Kullanımı
+### Product Operations  
+- **Add Product** (Experts Only) → `POST /api/product/add`  
+- **Update Product** → `PUT /api/product/update/{id}`  
+- **Delete Product** → `DELETE /api/product/delete/{id}`  
+- **Get Product Details** → `GET /api/product/{id}`  
 
-### 1. Ürün İşlemleri
+### Review & Rating Operations  
+- **Add Review** → `POST /api/product/{id}/comment`  
+- **Add Rating** → `POST /api/product/{id}/rating`  
+- **Update Review** → `PUT /api/product/{id}/comment/{commentId}`  
+- **Delete Review** → `DELETE /api/product/{id}/comment/{commentId}`  
 
-**Ürün Ekle** (Sadece Uzman)
+### User Management  
+- **User Registration** → `POST /api/user/register`  
+- **User Login** → `POST /api/user/login`  
+- **Update User Information** → `PUT /api/user/{id}`  
+- **Get User Details** → `GET /api/user/{id}`  
 
-`POST /api/product/add
-`
+### Admin Operations  
+- **Get User List** → `GET /api/admin/user`  
+- **Delete User** → `DELETE /api/admin/user/{id}`  
+- **Delete Product** (Admins Only) → `DELETE /api/product/{id}`  
 
-**Ürün Güncelleme**
+---
 
-``PUT /api/product/update/{id}`
+## Testing  
 
-**Ürün Silme**
+The project includes **unit and integration tests** using JUnit and Mockito.  
+To run tests:  
+```bash
+mvn test
+```
 
-`DELETE /api/product/delete/{id}`
+Tests are written for different application layers (**service, repository, controller**) to ensure stability.  
 
-**Ürün Detayları Getir**
+---
 
-`GET /api/product/{id}
-`
+## Contributing  
 
-### 2. Yorum ve Puanlama İşlemleri
+If you’d like to contribute:  
 
-**Yorum Ekle**
+1. Fork the repository.  
+2. Create a new branch.  
+3. Make your changes and commit them.  
+4. Submit a **Pull Request**.  
 
-`POST /api/product/{id}/comment`
+---
 
-**Puanlama Ekle**
-
-`POST /api/product/{id}/
-`
-
-**Yorum Güncelle**
-
-`PUT /api/product/id}/comment/{id}`
-
-**Yorum Sil**
-
-`DELETE /api/product/{id}/comment/{id}
-`
-
-### 3. Kullanıcı Yönetimi
-
-**Kullanıcı Kaydı**
-
-`POST /api/user/register
-`
-
-Kullanıcı rolüne göre (uzman, müşteri, admin) kayıt işlemi yapılır.
-
-**Kullanıcı Girişi**
-
-`POST /api/user/login
-`
-
-**Kullanıcı Bilgilerini Güncelle**
-
-`PUT /api/user/{id}
-`
-
-**Kullanıcı Bilgilerini Getir**
-
-`GET /api/user/{id}
-`
-
-### 4. Admin İşlemleri
-
-**Kullanıcı Listesi Getir**
-
-`GET /api/admin/user`
-
-**Kullanıcı Sil**
-
-`DELETE /api/admin/user/{id}
-`
-
-**Ürün Sil (Sadece Admin)**
-
-`DELETE /api/product/{id}
-`
-
-## Testler
-
-Projede birim testler ve entegrasyon testleri mevcuttur. Testleri çalıştırmak için:
-
-`mvn test
-`
-
-Testler, uygulamanın farklı katmanlarında (service, repository, controller) yazılmış olup, Mockito ve JUnit ile geliştirilmiştir.
-
-## Katkıda Bulunma
-
-Projeye katkıda bulunmak isterseniz aşağıdaki adımları izleyebilirsiniz:
-
-Projeyi fork edin.
-
-Yeni bir branch oluşturun.
-
-Değişikliklerinizi yapın.
-
-Pull request oluşturun.
-
-## Lisans
-
-Bu proje MIT lisansı altında lisanslanmıştır. Daha fazla bilgi için LICENSE dosyasına göz atabilirsiniz.
-
-
-
-
-
-
-
-
+## License  
+This project is licensed under the [MIT License](LICENSE).  
