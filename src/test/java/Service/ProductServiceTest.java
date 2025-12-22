@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
+
 public class ProductServiceTest {
     @Mock
     private ProductRepository productRepository;
@@ -30,7 +31,7 @@ public class ProductServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         product = new Product();
-        product.setId(Math.toIntExact(1L));
+        product.setId(1);
         product.setName("Sample Product");
         product.setCategory("Cosmetics");
     }
@@ -48,54 +49,54 @@ public class ProductServiceTest {
 
     @Test
     void getProductById_shouldReturnProduct_whenProductExists() {
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productRepository.findById(1)).thenReturn(Optional.of(product));
 
-        Product foundProduct = productService.getProductById(1L);
+        Product foundProduct = productService.getProductById(1);
 
         assertNotNull(foundProduct);
         assertEquals("Sample Product", foundProduct.getName());
-        verify(productRepository, times(1)).findById(1L);
+        verify(productRepository, times(1)).findById(1);
     }
 
     @Test
     void getProductById_shouldThrowException_whenProductDoesNotExist() {
-        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+        when(productRepository.findById(1)).thenReturn(Optional.empty());
 
-        assertThrows(ProductNotFoundException.class, () -> productService.getProductById(1L));
+        assertThrows(ProductNotFoundException.class, () -> productService.getProductById(1));
     }
 
     @Test
     void updateProduct_shouldUpdateAndReturnProduct() {
         Product updatedProduct = new Product();
-        updatedProduct.setId(Math.toIntExact(1L));
+        updatedProduct.setId(1);
         updatedProduct.setName("Updated Product");
         updatedProduct.setCategory("Updated Category");
 
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productRepository.findById(1)).thenReturn(Optional.of(product));
         when(productRepository.save(product)).thenReturn(product);
 
-        Product result = productService.updateProduct(1L, updatedProduct);
+        Product result = productService.updateProduct(1, updatedProduct);
 
         assertEquals("Updated Product", result.getName());
         assertEquals("Updated Category", result.getCategory());
-        verify(productRepository, times(1)).findById(1L);
+        verify(productRepository, times(1)).findById(1);
         verify(productRepository, times(1)).save(product);
     }
 
     @Test
     void deleteProduct_shouldRemoveProduct_whenProductExists() {
-        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productRepository.findById(1)).thenReturn(Optional.of(product));
 
-        productService.deleteProduct(1L);
+        productService.deleteProduct(1);
 
         verify(productRepository, times(1)).delete(product);
     }
 
     @Test
     void deleteProduct_shouldThrowException_whenProductDoesNotExist() {
-        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+        when(productRepository.findById(1)).thenReturn(Optional.empty());
 
-        assertThrows(ProductNotFoundException.class, () -> productService.deleteProduct(1L));
+        assertThrows(ProductNotFoundException.class, () -> productService.deleteProduct(1));
     }
 
     @Test

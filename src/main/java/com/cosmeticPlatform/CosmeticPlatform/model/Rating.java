@@ -16,11 +16,27 @@ public class Rating {
 
     private int score;
 
-//    @ManyToOne
-//    @JoinColumn(name = "user_id")
-//    private User user;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "product_id")
-//    private Product product;
+    public Object getProduct() {
+        throw new UnsupportedOperationException("Unimplemented method 'getProduct'");
+    }
+
+    public Object getUser() {
+        throw new UnsupportedOperationException("Unimplemented method 'getUser'");
+    }
+
+    public void setUser(User user) {
+        throw new UnsupportedOperationException("Unimplemented method 'setUser'");
+    }
+
+    public void setProduct(Product product) {
+        throw new UnsupportedOperationException("Unimplemented method 'setProduct'");
+    }
+
+    // @ManyToOne
+    // @JoinColumn(name = "user_id")
+    // private User user;
+    //
+    // @ManyToOne
+    // @JoinColumn(name = "product_id")
+    // private Product product;
 }

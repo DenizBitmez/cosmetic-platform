@@ -13,35 +13,45 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     @Autowired
-    public ProductService(ProductRepository productRepository){
-        this.productRepository=productRepository;
+    public ProductService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
     }
 
-    public Product addProduct(Product product){
-         return productRepository.save(product);
+    public Product addProduct(Product product) {
+        return productRepository.save(product);
     }
 
-    public Product getProductById(Long id){
+    public Product getProductById(Integer id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
     }
 
-    public Product updateProduct(Long id, Product updatedProduct) {
+    public Product updateProduct(Integer id, Product updatedProduct) {
         Product existingProduct = getProductById(id);
         existingProduct.setName(updatedProduct.getName());
         existingProduct.setId(updatedProduct.getId());
         existingProduct.setCategory(updatedProduct.getCategory());
-//        existingProduct.setComments(updatedProduct.getComments());
-//        existingProduct.setRatings(updatedProduct.getRatings());
+        existingProduct.setStock(updatedProduct.getStock());
+        existingProduct.setPrice(updatedProduct.getPrice());
+        // existingProduct.setComments(updatedProduct.getComments());
+        // existingProduct.setRatings(updatedProduct.getRatings());
         return productRepository.save(existingProduct);
     }
 
-    public void deleteProduct(Long id) {
+    public void deleteProduct(Integer id) {
         Product existingProduct = getProductById(id);
         productRepository.delete(existingProduct);
     }
 
-    public List<Product> getAllProduct(){
+    public List<Product> getAllProduct() {
         return productRepository.findAll();
+    }
+
+    public List<Product> getProductsByCategory(String category) {
+        return productRepository.findByCategory(category);
+    }
+
+    public List<Product> searchProducts(String name) {
+        return productRepository.findByNameContainingIgnoreCase(name);
     }
 }

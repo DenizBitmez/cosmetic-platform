@@ -18,9 +18,9 @@ public class UserController {
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserController(UserService userService,PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
-        this.passwordEncoder=passwordEncoder;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/add")
@@ -36,7 +36,6 @@ public class UserController {
         return userService.addUser(user);
     }
 
-
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
     public List<User> getAllUser() {
@@ -45,8 +44,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public User getUserById(@PathVariable Long id) {
+    public User getUserById(@PathVariable Integer id) {
         return userService.getUserById(id);
     }
 }
-

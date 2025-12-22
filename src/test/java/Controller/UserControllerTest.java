@@ -54,7 +54,7 @@ public class UserControllerTest {
         User user = new User();
         user.setUsername("deniz");
         user.setEmail("deniz@example.com");
-        user.setPassword("hashedPassword");  // Burada hashlenmiş şifre kullanılıyor
+        user.setPassword("hashedPassword"); // Burada hashlenmiş şifre kullanılıyor
         user.setUserType(UserType.CLIENT);
 
         when(passwordEncoder.encode("password123")).thenReturn("hashedPassword");
@@ -86,7 +86,8 @@ public class UserControllerTest {
         user.setPassword("hashedPassword");
         user.setUserType(UserType.CLIENT);
 
-        when(userService.addUser(any(User.class))).thenThrow(new ValidationException("Bu email ile kayıtlı kullanıcı var."));
+        when(userService.addUser(any(User.class)))
+                .thenThrow(new ValidationException("Bu email ile kayıtlı kullanıcı var."));
 
         // When & Then
         ValidationException exception;
@@ -124,28 +125,28 @@ public class UserControllerTest {
         User user = new User();
         user.setEmail("deniz@example.com");
 
-        when(userService.getUserById(1L)).thenReturn(user);
+        when(userService.getUserById(1)).thenReturn(user);
 
         // When
-        User result = userController.getUserById(1L);
+        User result = userController.getUserById(1);
 
         // Then
         assertNotNull(result);
         assertEquals("deniz@example.com", result.getEmail());
-        verify(userService, times(1)).getUserById(1L);
+        verify(userService, times(1)).getUserById(1);
     }
 
     @Test
     public void getUserById_UserDoesNotExist_ThrowsException() {
         // Given
-        when(userService.getUserById(1L)).thenThrow(new RuntimeException("Kullanıcı bulunamadı."));
+        when(userService.getUserById(1)).thenThrow(new RuntimeException("Kullanıcı bulunamadı."));
 
         // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            userController.getUserById(1L);
+            userController.getUserById(1);
         });
 
         assertEquals("Kullanıcı bulunamadı.", exception.getMessage());
-        verify(userService, times(1)).getUserById(1L);
+        verify(userService, times(1)).getUserById(1);
     }
 }

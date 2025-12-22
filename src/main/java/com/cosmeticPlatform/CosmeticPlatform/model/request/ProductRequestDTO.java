@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
+
 @Getter
 @Setter
 public class ProductRequestDTO {
@@ -15,4 +16,6 @@ public class ProductRequestDTO {
 
     @NotNull(message = "kategori boş bırakılamaz.")
     private String category;
+
+    private int stock;
 }

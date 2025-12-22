@@ -44,8 +44,8 @@ public class RatingServiceTest {
         int score = 4;
 
         // Mocking the repository responses
-        when(userRepository.findById((long) user.getId())).thenReturn(Optional.of(user));
-        when(productRepository.findById((long) product.getId())).thenReturn(Optional.of(product));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
         when(ratingRepository.save(any(Rating.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
@@ -71,8 +71,8 @@ public class RatingServiceTest {
         int score = 4;
 
         // Mocking invalid user scenario
-        when(userRepository.findById((long) user.getId())).thenReturn(Optional.empty());
-        when(productRepository.findById((long) product.getId())).thenReturn(Optional.of(product));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
+        when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
 
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -151,5 +151,3 @@ public class RatingServiceTest {
         verify(ratingRepository, times(1)).findAll();
     }
 }
-
-

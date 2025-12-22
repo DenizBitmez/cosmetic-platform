@@ -19,10 +19,14 @@ public class Product {
 
     private String category;
 
-//    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-//    private List<Comment> comments;
-//
-//    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-//    private List<Rating> ratings;
+    private double price;
+
+    private int stock;
+
+    // @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    // private List<Comment> comments;
+    //
+    // @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    // private List<Rating> ratings;
 
 }

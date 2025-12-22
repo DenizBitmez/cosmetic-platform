@@ -20,17 +20,17 @@ public class RatingController {
     private final ProductService productService;
 
     @Autowired
-    public RatingController(RatingService ratingService, UserService userService, ProductService productService){
-        this.ratingService=ratingService;
-        this.userService=userService;
-        this.productService=productService;
+    public RatingController(RatingService ratingService, UserService userService, ProductService productService) {
+        this.ratingService = ratingService;
+        this.userService = userService;
+        this.productService = productService;
     }
 
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.CREATED)
-    public Rating addRating(@Valid @RequestBody RatingRequestDTO ratingRequestDTO){
-        var user = userService.getUserById(ratingRequestDTO.getId());
-        var product = productService.getProductById(ratingRequestDTO.getId());
+    public Rating addRating(@Valid @RequestBody RatingRequestDTO ratingRequestDTO) {
+        var user = userService.getUserById(ratingRequestDTO.getUserId());
+        var product = productService.getProductById(ratingRequestDTO.getProductId());
 
         return ratingService.addRating(user, product, ratingRequestDTO.getScore());
     }

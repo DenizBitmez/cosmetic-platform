@@ -1,4 +1,5 @@
 package Service;
+
 import jakarta.validation.ValidationException;
 import com.cosmeticPlatform.CosmeticPlatform.model.User;
 import com.cosmeticPlatform.CosmeticPlatform.model.UserType;
@@ -60,7 +61,7 @@ public class UserServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(user);
 
         User savedUser = userService.addUser(user);
-        assertEquals(user.getEmail(),savedUser.getEmail());
+        assertEquals(user.getEmail(), savedUser.getEmail());
         assertNotNull(savedUser.getPassword());
         verify(userRepository).save(any(User.class));
 
@@ -95,34 +96,34 @@ public class UserServiceTest {
         user.setPassword("password123");
         user.setUserType(UserType.CLIENT);
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findById(1)).thenReturn(Optional.of(user));
 
         // When
-        User result = userService.getUserById(1L);
+        User result = userService.getUserById(1);
 
         // Then
         assertNotNull(result);
         assertEquals(user.getEmail(), result.getEmail());
-        verify(userRepository).findById(1L);
+        verify(userRepository).findById(1);
     }
 
     @Test
     public void getUserById_UserDoesNotExist_ThrowsException() {
         // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userRepository.findById(1)).thenReturn(Optional.empty());
 
         // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            userService.getUserById(1L);
+            userService.getUserById(1);
         });
 
         assertEquals("Kullanıcı bulunamadı", exception.getMessage());
-        verify(userRepository).findById(1L);
+        verify(userRepository).findById(1);
     }
 
     @Test
     public void loadUserByUsername_UserExists_ReturnsUserDetails() {
-        //Given
+        // Given
         User user = new User();
         user.setEmail("deniz@example.com");
         user.setPassword("password123");
@@ -130,10 +131,10 @@ public class UserServiceTest {
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-        //When
+        // When
         UserDetails userDetails = userService.loadUserByUsername(user.getEmail());
 
-        //Then
+        // Then
         assertEquals(user.getEmail(), userDetails.getUsername());
         assertNotNull(userDetails.getPassword());
         assertTrue(userDetails.getAuthorities().stream().anyMatch(a -> {
@@ -145,7 +146,7 @@ public class UserServiceTest {
 
     @Test
     public void loadUserByUsername_UserDoesNotExist_ThrowsUsernameNotFoundException() {
-        //Given
+        // Given
         User user = new User();
         user.setEmail("deniz@example.com");
         user.setPassword("password123");
@@ -153,12 +154,12 @@ public class UserServiceTest {
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
 
-        //When
+        // When
         assertThrows(UsernameNotFoundException.class, () -> {
             userService.loadUserByUsername(user.getEmail());
         });
 
-        //Then
+        // Then
         verify(userRepository).findByEmail(user.getEmail());
     }
 }

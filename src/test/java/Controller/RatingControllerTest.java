@@ -55,7 +55,8 @@ public class RatingControllerTest {
     void addRating_ShouldReturnCreatedRating() throws Exception {
         // Given
         RatingRequestDTO ratingRequestDTO = new RatingRequestDTO();
-        ratingRequestDTO.setId(1L); // Kullanıcı ve ürün ID'si
+        ratingRequestDTO.setUserId(1);
+        ratingRequestDTO.setProductId(1);
         ratingRequestDTO.setScore(5); // Skor
 
         User user = new User(); // Kullanıcı örneği
@@ -73,14 +74,14 @@ public class RatingControllerTest {
         savedRating.setProduct(product);
 
         // Mock davranışları
-        when(userService.getUserById(anyLong())).thenReturn(user);
-        when(productService.getProductById(anyLong())).thenReturn(product);
+        when(userService.getUserById(anyInt())).thenReturn(user);
+        when(productService.getProductById(anyInt())).thenReturn(product);
         when(ratingService.addRating(any(User.class), any(Product.class), anyInt())).thenReturn(savedRating);
 
         // When & Then
         mockMvc.perform(post("/api/rating/add")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(ratingRequestDTO)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(ratingRequestDTO)))
                 .andExpect(status().isCreated()) // 201 CREATED bekliyoruz
                 .andExpect(jsonPath("$.id").value(1)) // Rating ID'sini doğruluyoruz
                 .andExpect(jsonPath("$.score").value(5)); // Skoru doğruluyoruz
@@ -98,8 +99,8 @@ public class RatingControllerTest {
 
         // When & Then
         mockMvc.perform(put("/api/rating/{id}", ratingId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(ratingRequestDTO))) // JSON'u body'e ekliyoruz
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(ratingRequestDTO))) // JSON'u body'e ekliyoruz
                 .andExpect(status().isNoContent()); // 204 NO CONTENT bekliyoruz
     }
 

@@ -19,31 +19,32 @@ public class RatingService {
     private final ProductRepository productRepository;
 
     @Autowired
-    public RatingService(RatingRepository ratingRepository,UserRepository userRepository,ProductRepository productRepository){
-        this.ratingRepository=ratingRepository;
-        this.userRepository=userRepository;
-        this.productRepository=productRepository;
+    public RatingService(RatingRepository ratingRepository, UserRepository userRepository,
+            ProductRepository productRepository) {
+        this.ratingRepository = ratingRepository;
+        this.userRepository = userRepository;
+        this.productRepository = productRepository;
     }
 
     public Rating addRating(User user, Product product, int score) {
-        if (user == null || userRepository.findById((long) user.getId()).isEmpty()) {
+        if (user == null || userRepository.findById(user.getId()).isEmpty()) {
             throw new IllegalArgumentException("Geçersiz kullanıcı.");
         }
-        if (product == null || productRepository.findById((long) product.getId()).isEmpty()) {
+        if (product == null || productRepository.findById(product.getId()).isEmpty()) {
             throw new IllegalArgumentException("Geçersiz ürün.");
         }
 
-        if (score<0 || score>5){
+        if (score < 0 || score > 5) {
             throw new IllegalArgumentException("Puan 0 ile 5 arasında olmalı.");
         }
-        Rating rating=new Rating();
+        Rating rating = new Rating();
         rating.setId(rating.getId());
-//        rating.setProduct(product);
+        // rating.setProduct(product);
         rating.setScore(score);
         return ratingRepository.save(rating);
     }
 
-    public Rating updateRating(Long ratingId, RatingRequestDTO ratingRequestDTO){
+    public Rating updateRating(Long ratingId, RatingRequestDTO ratingRequestDTO) {
         Rating rating = ratingRepository.findById(ratingId)
                 .orElseThrow(() -> new RuntimeException("Yorum bulunamadı, ID: " + ratingId));
 
@@ -51,12 +52,11 @@ public class RatingService {
         return ratingRepository.save(rating);
     }
 
-
     public void deleteRating(Long id) {
         ratingRepository.deleteById(id);
     }
 
-    public List<Rating> getAllRating(){
+    public List<Rating> getAllRating() {
         return ratingRepository.findAll();
     }
 }
