@@ -38,8 +38,9 @@ public class RatingService {
             throw new IllegalArgumentException("Puan 0 ile 5 arasında olmalı.");
         }
         Rating rating = new Rating();
-        rating.setId(rating.getId());
-        // rating.setProduct(product);
+        // rating.setId(rating.getId()); // Auto-generated
+        rating.setProduct(product);
+        rating.setUser(user);
         rating.setScore(score);
         return ratingRepository.save(rating);
     }
@@ -58,5 +59,9 @@ public class RatingService {
 
     public List<Rating> getAllRating() {
         return ratingRepository.findAll();
+    }
+
+    public List<Rating> getRatingsByProductId(int productId) {
+        return ratingRepository.findByProductId(productId);
     }
 }

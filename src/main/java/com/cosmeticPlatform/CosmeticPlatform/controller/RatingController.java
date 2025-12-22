@@ -51,4 +51,9 @@ public class RatingController {
     public List<Rating> getAllRating() {
         return ratingService.getAllRating();
     }
+
+    @GetMapping("/product/{productId}")
+    public List<Rating> getRatingsByProductId(@PathVariable Integer productId) {
+        return ratingService.getRatingsByProductId(productId);
+    }
 }

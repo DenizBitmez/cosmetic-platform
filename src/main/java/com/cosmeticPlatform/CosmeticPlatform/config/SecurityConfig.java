@@ -15,46 +15,48 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import com.cosmeticPlatform.CosmeticPlatform.service.UserService;
 
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
 
-    @Configuration
-    @EnableWebSecurity
-    public class SecurityConfig {
+    @Autowired
+    private UserService userDetailsService;
 
-        @Autowired
-        private UserService userDetailsService;
-        @Bean
-        public BCryptPasswordEncoder passwordEncoder() {
-            return new BCryptPasswordEncoder();
-        }
-
-        @Bean
-        public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-            AuthenticationManagerBuilder authManagerBuilder =  http.getSharedObject(AuthenticationManagerBuilder.class);
-            authManagerBuilder.userDetailsService(userDetailsService)
-                    .passwordEncoder(passwordEncoder());
-            return authManagerBuilder.build();      }
-
-        @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-            http
-                    .csrf(AbstractHttpConfigurer::disable)  // CSRF'yi devre dışı bırak
-                    .cors(AbstractHttpConfigurer::disable)
-                    .authorizeHttpRequests((authorize) -> authorize
-                            .requestMatchers(HttpMethod.POST, "/api/register").permitAll()
-                            .requestMatchers("/swagger-ui/**").permitAll()
-                            .requestMatchers("/swagger-resources/**").permitAll()
-                            .requestMatchers("/swagger-ui.html").permitAll()
-                            .requestMatchers("/v3/api-docs/**").permitAll()
-//                            .requestMatchers("/api/user/all").hasAuthority("admin")
-                            .requestMatchers("/api/user/**").hasAnyAuthority("ADMIN, CLIENT, EXPERT") // Kullanıcı yönetim işlemleri
-                                    .requestMatchers(HttpMethod.POST, "/api/user/add").hasAnyAuthority("ADMIN", "CLIENT")
-
-                                    .anyRequest()
-                                    .authenticated()
-                    ).httpBasic(Customizer.withDefaults());
-
-            return http.build();
-        }
-
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder authManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        authManagerBuilder.userDetailsService(userDetailsService)
+                .passwordEncoder(passwordEncoder());
+        return authManagerBuilder.build();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable) // CSRF'yi devre dışı bırak
+                .cors(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers(HttpMethod.POST, "/api/register").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // Allow auth endpoints
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        // .requestMatchers("/api/user/all").hasAuthority("admin")
+                        .requestMatchers("/api/user/**").hasAnyAuthority("ADMIN, CLIENT, EXPERT") // Kullanıcı yönetim
+                                                                                                  // işlemleri
+                        .requestMatchers(HttpMethod.POST, "/api/user/add").hasAnyAuthority("ADMIN", "CLIENT")
+
+                        .anyRequest()
+                        .authenticated())
+                .httpBasic(Customizer.withDefaults());
+
+        return http.build();
+    }
+
+}
