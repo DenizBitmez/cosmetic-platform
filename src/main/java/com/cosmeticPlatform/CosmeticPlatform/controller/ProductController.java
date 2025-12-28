@@ -29,6 +29,7 @@ public class ProductController {
         product.setId(productRequestDTO.getId());
         product.setCategory(productRequestDTO.getCategory());
         product.setStock(productRequestDTO.getStock());
+        product.setPrice(productRequestDTO.getPrice());
         return productService.addProduct(product);
     }
 

@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Lato', sans-serif;
+  background-color: #F9F7F2;
+  /* brand-cream */
+  color: #1A1A1A;
+  /* brand-dark */
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Playfair Display', serif;
+}

@@ -80,7 +80,7 @@ public class OrderService {
     }
 
     public List<Order> getUserOrders(Integer userId) {
-        return orderRepository.findByUserId(userId);
+        return orderRepository.findByUser_Id(userId);
     }
 
     public Order getOrderById(Long orderId) {

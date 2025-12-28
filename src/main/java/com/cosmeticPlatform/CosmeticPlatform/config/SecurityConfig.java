@@ -39,7 +39,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable) // CSRF'yi devre dışı bırak
-                .cors(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(request -> {
+                    var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
+                    corsConfiguration
+                            .setAllowedOrigins(java.util.List.of("http://localhost:5173", "http://localhost:3000"));
+                    corsConfiguration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    corsConfiguration.setAllowedHeaders(java.util.List.of("*"));
+                    return corsConfiguration;
+                }))
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(HttpMethod.POST, "/api/register").permitAll()
                         .requestMatchers("/api/auth/**").permitAll() // Allow auth endpoints
@@ -48,13 +55,13 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui.html").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         // .requestMatchers("/api/user/all").hasAuthority("admin")
-                        .requestMatchers("/api/user/**").hasAnyAuthority("ADMIN, CLIENT, EXPERT") // Kullanıcı yönetim
-                                                                                                  // işlemleri
-                        .requestMatchers(HttpMethod.POST, "/api/user/add").hasAnyAuthority("ADMIN", "CLIENT")
+                        .requestMatchers("/api/product/**").permitAll()
+                        .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "CLIENT", "EXPERT") // Kullanıcı yönetim
+                                                                                                 // işlemleri
+                        .requestMatchers(HttpMethod.POST, "/api/user/add").hasAnyRole("ADMIN", "CLIENT")
 
                         .anyRequest()
-                        .authenticated())
-                .httpBasic(Customizer.withDefaults());
+                        .authenticated());
 
         return http.build();
     }

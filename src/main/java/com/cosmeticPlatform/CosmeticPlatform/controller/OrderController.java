@@ -22,17 +22,49 @@ public class OrderController {
 
     @PostMapping("/create/{userId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Order> createOrder(@PathVariable Integer userId, @RequestParam Long addressId) {
-        return ResponseEntity.ok(orderService.createOrder(userId, addressId));
+    public ResponseEntity<com.cosmeticPlatform.CosmeticPlatform.model.response.OrderResponseDTO> createOrder(
+            @PathVariable Integer userId, @RequestParam Long addressId) {
+        Order order = orderService.createOrder(userId, addressId);
+        return ResponseEntity.ok(mapToDTO(order));
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Order>> getUserOrders(@PathVariable Integer userId) {
-        return ResponseEntity.ok(orderService.getUserOrders(userId));
+    public ResponseEntity<List<com.cosmeticPlatform.CosmeticPlatform.model.response.OrderResponseDTO>> getUserOrders(
+            @PathVariable Integer userId) {
+        List<Order> orders = orderService.getUserOrders(userId);
+        List<com.cosmeticPlatform.CosmeticPlatform.model.response.OrderResponseDTO> orderDTOs = orders.stream()
+                .map(this::mapToDTO).toList();
+        return ResponseEntity.ok(orderDTOs);
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<Order> getOrder(@PathVariable Long orderId) {
-        return ResponseEntity.ok(orderService.getOrderById(orderId));
+    public ResponseEntity<com.cosmeticPlatform.CosmeticPlatform.model.response.OrderResponseDTO> getOrder(
+            @PathVariable Long orderId) {
+        Order order = orderService.getOrderById(orderId);
+        return ResponseEntity.ok(mapToDTO(order));
+    }
+
+    private com.cosmeticPlatform.CosmeticPlatform.model.response.OrderResponseDTO mapToDTO(Order order) {
+        com.cosmeticPlatform.CosmeticPlatform.model.response.OrderResponseDTO dto = new com.cosmeticPlatform.CosmeticPlatform.model.response.OrderResponseDTO();
+        dto.setId(order.getId());
+        dto.setOrderDate(order.getOrderDate());
+        dto.setStatus(order.getStatus().name());
+        dto.setTotalAmount(order.getTotalAmount());
+        if (order.getAddress() != null) {
+            dto.setAddressTitle(order.getAddress().getTitle() + ", " + order.getAddress().getCity());
+        }
+
+        List<com.cosmeticPlatform.CosmeticPlatform.model.response.OrderItemDTO> itemDTOs = order.getOrderItems()
+                .stream().map(item -> {
+                    com.cosmeticPlatform.CosmeticPlatform.model.response.OrderItemDTO itemDTO = new com.cosmeticPlatform.CosmeticPlatform.model.response.OrderItemDTO();
+                    itemDTO.setProductName(item.getProduct().getName());
+                    itemDTO.setQuantity(item.getQuantity());
+                    itemDTO.setPrice(item.getPrice());
+                    itemDTO.setCategory(item.getProduct().getCategory());
+                    return itemDTO;
+                }).toList();
+
+        dto.setOrderItems(itemDTOs);
+        return dto;
     }
 }

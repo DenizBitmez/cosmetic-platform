@@ -15,7 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import javax.validation.ValidationException;
+import jakarta.validation.ValidationException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;

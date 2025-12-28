@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -30,21 +30,21 @@ public class AuthController {
         this.userRepository = userRepository;
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<User> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
-        try {
-            // Note: UserDetailsService seems to expect username, but DTO might send email.
-            // SecurityConfig uses userDetailsService which likely looks up by email if
-            // implemented that way.
-            // Let's assume username is passed or adjust UserDetailsService.
-            // But wait, UserRepository has findByEmail.
-            // Let's rely on how the existing UserService implements loadUserByUsername.
-            // For now, I'll pass email as principal.
+    private final org.springframework.security.web.context.SecurityContextRepository securityContextRepository = new org.springframework.security.web.context.HttpSessionSecurityContextRepository();
 
+    @PostMapping("/login")
+    public ResponseEntity<User> login(@Valid @RequestBody LoginRequestDTO loginRequest,
+            jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
+        try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            org.springframework.security.core.context.SecurityContext context = SecurityContextHolder
+                    .createEmptyContext();
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
+
+            securityContextRepository.saveContext(context, request, response);
 
             // Return user details
             User user = userRepository.findByEmail(loginRequest.getEmail())
@@ -52,6 +52,7 @@ public class AuthController {
 
             return ResponseEntity.ok(user);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }

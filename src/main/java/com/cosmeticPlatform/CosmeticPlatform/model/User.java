@@ -17,7 +17,7 @@ public class User {
 
     private String username;
 
-    // @JsonIgnore // Şifrenin gizlenmesi için
+    @JsonIgnore
     private String password;
 
     @Column(unique = true)
@@ -32,9 +32,11 @@ public class User {
     // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     // private List<Rating> ratings;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private java.util.List<Address> addresses;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private java.util.List<Order> orders;
 }

@@ -9,6 +9,7 @@ import lombok.Setter;
 @Table(name = "address")
 @Getter
 @Setter
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Address {
 
     @Id

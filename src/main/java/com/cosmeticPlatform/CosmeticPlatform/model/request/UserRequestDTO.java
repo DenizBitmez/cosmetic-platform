@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import com.cosmeticPlatform.CosmeticPlatform.model.UserType;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @Getter
 @Setter
