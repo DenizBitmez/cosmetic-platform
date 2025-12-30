@@ -3,7 +3,7 @@
     <!-- Hero Section -->
     <div class="relative bg-gray-900 h-[60vh] overflow-hidden">
         <div class="absolute inset-0">
-             <img class="w-full h-full object-cover opacity-60" src="https://images.unsplash.com/photo-1596462502278-27bfdd403348?q=80&w=2670&auto=format&fit=crop" alt="Cosmetics Background">
+             <img class="w-full h-full object-cover opacity-60" src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=2670&auto=format&fit=crop" alt="Cosmetics Background">
         </div>
         <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8 h-full flex items-center">
              <div class="max-w-xl">
@@ -60,13 +60,63 @@
             <p>{{ error }}</p>
         </div>
 
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 gap-x-8">
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-y-12 gap-x-8">
             <ProductCard 
                 v-for="product in filteredProducts" 
                 :key="product.id" 
                 :product="product" 
+                @remove="handleRemove(product)"
+                @click="selectedProduct = product"
+                class="transition-opacity duration-300"
             />
         </div>
+
+        <!-- Blog Section -->
+        <div class="mt-32">
+            <div class="flex items-center justify-between mb-12">
+                <div>
+                    <h2 class="text-3xl font-serif text-brand-dark mb-2">Expert Insights</h2>
+                    <p class="text-gray-500 font-light italic">Beauty guidance from the experts you trust.</p>
+                </div>
+                <router-link to="/blog" class="text-xs font-bold uppercase tracking-widest text-brand-gold hover:text-brand-dark transition-colors border-b border-brand-gold">Read All Articles</router-link>
+            </div>
+
+            <div v-if="loading && blogPosts.length === 0" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div v-for="i in 3" :key="i" class="animate-pulse">
+                    <div class="aspect-[16/10] bg-gray-100 rounded-2xl mb-6"></div>
+                    <div class="h-4 bg-gray-100 rounded w-1/4 mb-4"></div>
+                    <div class="h-6 bg-gray-100 rounded w-3/4 mb-4"></div>
+                    <div class="h-4 bg-gray-100 rounded w-full"></div>
+                </div>
+            </div>
+
+            <div v-else-if="blogPosts.length === 0" class="text-center py-20 bg-white/50 rounded-3xl border border-dashed border-gray-200">
+                <p class="text-gray-400 font-light italic">More expert insights coming soon.</p>
+            </div>
+
+            <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div v-for="post in blogPosts" :key="post.id" class="group cursor-pointer" @click="router.push(`/blog/${post.id}`)">
+                    <div class="aspect-[16/10] overflow-hidden rounded-2xl mb-6">
+                        <img :src="post.imageUrl || 'https://images.unsplash.com/photo-1596462502278-27bfdc4033c8?q=80&w=1760&auto=format&fit=crop'" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Blog Image">
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] bg-brand-cream text-brand-gold px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Expert Advice</span>
+                            <span class="text-[10px] text-gray-400 capitalize">{{ post.authorName }}</span>
+                        </div>
+                        <h3 class="text-xl font-serif text-brand-dark group-hover:text-brand-gold transition-colors">{{ post.title }}</h3>
+                        <p class="text-sm text-gray-500 line-clamp-2 font-light leading-relaxed">{{ post.content }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Detail Modal -->
+        <ProductDetailModal 
+            :product="selectedProduct" 
+            @close="selectedProduct = null"
+        />
     </div>
   </div>
 </template>
@@ -75,27 +125,53 @@
 import { ref, onMounted, computed } from 'vue';
 import api from '@/services/api';
 import ProductCard from '@/components/ProductCard.vue';
+import ProductDetailModal from '@/components/ProductDetailModal.vue';
 import { PhSparkle, PhPlant, PhTruck } from '@phosphor-icons/vue';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const products = ref([]);
+const blogPosts = ref([]);
 const loading = ref(true);
 const error = ref(null);
+const selectedProduct = ref(null);
+
+const fetchBlogPosts = async () => {
+    try {
+        const res = await api.get('/blog');
+        blogPosts.value = res.data.slice(0, 3);
+    } catch (e) {
+        console.error("Failed to fetch blog posts", e);
+    }
+};
 
 const filteredProducts = computed(() => {
-    return products.value.filter(p => p.price > 0);
+    return products.value.slice(0, 6);
 });
+
+const handleRemove = (productToRemove) => {
+    products.value = products.value.filter(p => p.id !== productToRemove.id);
+};
 
 onMounted(async () => {
     try {
-        const response = await api.get('/product/all');
-        products.value = response.data;
+        // Fetch "New Arrivals" - using nail_polish for variety
+        const response = await fetch('https://makeup-api.herokuapp.com/api/v1/products.json?product_type=nail_polish');
+        if (!response.ok) throw new Error('API Error');
+        const data = await response.json();
+        
+        products.value = data
+            .filter(p => p.price && parseFloat(p.price) > 0 && p.image_link && p.image_link.length > 10)
+            .map(p => ({
+                ...p,
+                image: p.image_link.replace('http://', 'https://'),
+                price: p.price
+            }));
+        
+        await fetchBlogPosts();
     } catch (err) {
         console.error('Failed to fetch products', err);
-        if (err.response && err.response.status === 204) {
-            products.value = [];
-        } else {
-             error.value = "Unable to load catalogue.";
-        }
+        error.value = "Unable to load catalogue.";
     } finally {
         loading.value = false;
     }

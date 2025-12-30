@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-brand-cream border-b border-gray-200 sticky top-0 z-50">
+  <nav class="bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-200 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-20">
         <div class="flex">
@@ -18,6 +18,9 @@
             </router-link>
              <router-link to="/about" class="border-transparent text-gray-500 hover:text-brand-gold inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium uppercase tracking-wide transition-colors">
               About
+            </router-link>
+            <router-link to="/blog" class="border-transparent text-gray-500 hover:text-brand-gold inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium uppercase tracking-wide transition-colors">
+              Blog
             </router-link>
           </div>
         </div>

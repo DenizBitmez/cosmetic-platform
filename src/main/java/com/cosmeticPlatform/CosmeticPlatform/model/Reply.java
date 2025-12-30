@@ -1,15 +1,16 @@
 package com.cosmeticPlatform.CosmeticPlatform.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reviews")
+@Table(name = "replies")
 @Getter
 @Setter
-public class Review {
+public class Reply {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,20 +19,15 @@ public class Review {
     private String username;
     private int userId;
 
-    private String productName;
-
-    private int rating; // 1-5
-
     @Column(length = 1000)
     private String comment;
 
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<Reply> replies = new java.util.ArrayList<>();
-
-    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<Reaction> reactions = new java.util.ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_id")
+    @JsonIgnore
+    private Review review;
 
     @PrePersist
     protected void onCreate() {

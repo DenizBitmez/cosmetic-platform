@@ -23,6 +23,16 @@ public class Product {
 
     private int stock;
 
+    @Column(columnDefinition = "TEXT")
+    private String image;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "product_ingredients", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "ingredient_id"))
+    private List<Ingredient> ingredients;
+
     // @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     // private List<Comment> comments;
     //

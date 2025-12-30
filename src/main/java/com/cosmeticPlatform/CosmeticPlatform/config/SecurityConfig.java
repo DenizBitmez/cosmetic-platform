@@ -60,6 +60,7 @@ public class SecurityConfig {
                                                 // .requestMatchers("/api/user/all").hasAuthority("admin")
                                                 .requestMatchers("/api/product/**").permitAll()
                                                 .requestMatchers("/api/reviews/**").permitAll()
+                                                .requestMatchers("/api/blog/**").permitAll()
                                                 .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "CLIENT", "EXPERT") // Kullanıcı
                                                                                                                          // yönetim
                                                                                                                          // işlemleri

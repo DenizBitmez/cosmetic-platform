@@ -1,11 +1,10 @@
 <template>
   <div class="group">
-    <div class="w-full aspect-[3/4] bg-gray-200 overflow-hidden relative mb-4 cursor-pointer" @click="router.push(`/product/${product.id}`)">
-        <!-- Placeholder Image Logic -->
+    <div class="w-full aspect-square bg-white overflow-hidden relative mb-4 cursor-pointer flex items-center justify-center p-6 border border-gray-100 rounded-lg" @click="$emit('click')">
         <img :src="product.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop'" 
              alt="Product Image"
-             class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-in-out" />
-        
+             @error="$emit('remove')"
+             class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-in-out" />
     </div>
     
     <div class="p-2">

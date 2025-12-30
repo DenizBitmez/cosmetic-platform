@@ -63,6 +63,26 @@ const router = createRouter({
             path: '/product/:id',
             name: 'product-detail',
             component: () => import('../views/ProductDetailView.vue')
+        },
+        {
+            path: '/blog',
+            name: 'blog-list',
+            component: () => import('../views/BlogListView.vue')
+        },
+        {
+            path: '/blog/:id',
+            name: 'blog-detail',
+            component: () => import('../views/BlogDetailView.vue')
+        },
+        {
+            path: '/blog/submit',
+            name: 'blog-submit',
+            component: () => import('../views/BlogSubmissionView.vue')
+        },
+        {
+            path: '/admin/blog',
+            name: 'blog-admin',
+            component: () => import('../views/BlogAdminView.vue')
         }
     ]
 })
