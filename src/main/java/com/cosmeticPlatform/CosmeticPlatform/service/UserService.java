@@ -64,4 +64,32 @@ public class UserService implements UserDetailsService {
                 return List.of();
         }
     }
+
+    public void updatePassword(User user, String newPassword) {
+        user.setPassword(new BCryptPasswordEncoder().encode(newPassword));
+        userRepository.save(user);
+    }
+
+    public User processOAuthPostLogin(String email, String name) {
+        var userOptional = userRepository.findByEmail(email);
+        User user;
+
+        if (userOptional.isPresent()) {
+            user = userOptional.get();
+            // Update existing user's name if it's different/missing
+            if (name != null && !name.isEmpty() && !name.equals(user.getUsername())) {
+                user.setUsername(name);
+                userRepository.save(user);
+            }
+            return user;
+        }
+
+        User newUser = new User();
+        newUser.setEmail(email);
+        newUser.setUsername(name);
+        newUser.setPassword(new BCryptPasswordEncoder().encode("OAUTH2_USER")); // Placeholder password
+        newUser.setUserType(com.cosmeticPlatform.CosmeticPlatform.model.UserType.CLIENT);
+
+        return userRepository.save(newUser);
+    }
 }

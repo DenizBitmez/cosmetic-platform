@@ -19,51 +19,75 @@ import com.cosmeticPlatform.CosmeticPlatform.service.UserService;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private UserService userDetailsService;
+        @Autowired
+        private UserService userDetailsService;
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public BCryptPasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authManagerBuilder.userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder());
-        return authManagerBuilder.build();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+                AuthenticationManagerBuilder authManagerBuilder = http
+                                .getSharedObject(AuthenticationManagerBuilder.class);
+                authManagerBuilder.userDetailsService(userDetailsService)
+                                .passwordEncoder(passwordEncoder());
+                return authManagerBuilder.build();
+        }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable) // CSRF'yi devre dışı bırak
-                .cors(cors -> cors.configurationSource(request -> {
-                    var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfiguration
-                            .setAllowedOrigins(java.util.List.of("http://localhost:5173", "http://localhost:3000"));
-                    corsConfiguration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                    corsConfiguration.setAllowedHeaders(java.util.List.of("*"));
-                    return corsConfiguration;
-                }))
-                .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers(HttpMethod.POST, "/api/register").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll() // Allow auth endpoints
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/swagger-resources/**").permitAll()
-                        .requestMatchers("/swagger-ui.html").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        // .requestMatchers("/api/user/all").hasAuthority("admin")
-                        .requestMatchers("/api/product/**").permitAll()
-                        .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "CLIENT", "EXPERT") // Kullanıcı yönetim
-                                                                                                 // işlemleri
-                        .requestMatchers(HttpMethod.POST, "/api/user/add").hasAnyRole("ADMIN", "CLIENT")
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(AbstractHttpConfigurer::disable) // CSRF'yi devre dışı bırak
+                                .cors(cors -> cors.configurationSource(request -> {
+                                        var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
+                                        corsConfiguration
+                                                        .setAllowedOrigins(java.util.List.of("http://localhost:5173",
+                                                                        "http://localhost:3000"));
+                                        corsConfiguration.setAllowedMethods(
+                                                        java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                                        corsConfiguration.setAllowedHeaders(java.util.List.of("*"));
+                                        return corsConfiguration;
+                                }))
+                                .authorizeHttpRequests((authorize) -> authorize
+                                                .requestMatchers(HttpMethod.POST, "/api/register").permitAll()
+                                                .requestMatchers("/api/auth/**").permitAll() // Allow auth endpoints
+                                                .requestMatchers("/swagger-ui/**").permitAll()
+                                                .requestMatchers("/swagger-resources/**").permitAll()
+                                                .requestMatchers("/swagger-ui.html").permitAll()
+                                                .requestMatchers("/v3/api-docs/**").permitAll()
+                                                // .requestMatchers("/api/user/all").hasAuthority("admin")
+                                                .requestMatchers("/api/product/**").permitAll()
+                                                .requestMatchers("/api/reviews/**").permitAll()
+                                                .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "CLIENT", "EXPERT") // Kullanıcı
+                                                                                                                         // yönetim
+                                                                                                                         // işlemleri
+                                                .requestMatchers(HttpMethod.POST, "/api/user/add")
+                                                .hasAnyRole("ADMIN", "CLIENT")
+                                                .requestMatchers("/api/auth/forgot-password",
+                                                                "/api/auth/reset-password")
+                                                .permitAll()
+                                                .anyRequest()
+                                                .authenticated())
+                                .oauth2Login(oauth2 -> oauth2
+                                                .successHandler((request, response, authentication) -> {
+                                                        org.springframework.security.oauth2.core.user.OAuth2User oauthUser = (org.springframework.security.oauth2.core.user.OAuth2User) authentication
+                                                                        .getPrincipal();
+                                                        String email = oauthUser.getAttribute("email");
+                                                        String name = oauthUser.getAttribute("name");
 
-                        .anyRequest()
-                        .authenticated());
+                                                        com.cosmeticPlatform.CosmeticPlatform.model.User user = userDetailsService
+                                                                        .processOAuthPostLogin(email, name);
 
-        return http.build();
-    }
+                                                        response.sendRedirect("http://localhost:5173/login?oauth_email="
+                                                                        + email + "&oauth_name="
+                                                                        + java.net.URLEncoder.encode(name,
+                                                                                        java.nio.charset.StandardCharsets.UTF_8)
+                                                                        + "&oauth_id=" + user.getId());
+                                                }));
+
+                return http.build();
+        }
 
 }

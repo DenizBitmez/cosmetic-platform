@@ -1,9 +1,9 @@
 <template>
   <div class="group">
-    <div class="w-full aspect-[3/4] bg-gray-200 overflow-hidden relative mb-4">
+    <div class="w-full aspect-[3/4] bg-gray-200 overflow-hidden relative mb-4 cursor-pointer" @click="router.push(`/product/${product.id}`)">
         <!-- Placeholder Image Logic -->
-        <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop" 
-             alt="Crs product"
+        <img :src="product.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop'" 
+             alt="Product Image"
              class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-in-out" />
         
     </div>

@@ -35,6 +35,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<User> login(@Valid @RequestBody LoginRequestDTO loginRequest,
             jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
+        System.out.println("Login attempt for email: " + loginRequest.getEmail());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
@@ -50,8 +51,10 @@ public class AuthController {
             User user = userRepository.findByEmail(loginRequest.getEmail())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
+            System.out.println("User found and authenticated: " + user.getEmail());
             return ResponseEntity.ok(user);
         } catch (Exception e) {
+            System.out.println("Login failed for " + loginRequest.getEmail() + ": " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

@@ -10,12 +10,15 @@
             <router-link to="/" class="border-transparent text-gray-500 hover:text-brand-gold inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium uppercase tracking-wide transition-colors">
               Home
             </router-link>
-             <a href="#" class="border-transparent text-gray-500 hover:text-brand-gold inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium uppercase tracking-wide transition-colors">
-              Shop
-            </a>
-             <a href="#" class="border-transparent text-gray-500 hover:text-brand-gold inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium uppercase tracking-wide transition-colors">
+             <router-link to="/categories" class="border-transparent text-gray-500 hover:text-brand-gold inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium uppercase tracking-wide transition-colors">
+              Categories
+            </router-link>
+             <router-link to="/community" class="border-transparent text-gray-500 hover:text-brand-gold inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium uppercase tracking-wide transition-colors">
+              Community
+            </router-link>
+             <router-link to="/about" class="border-transparent text-gray-500 hover:text-brand-gold inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium uppercase tracking-wide transition-colors">
               About
-            </a>
+            </router-link>
           </div>
         </div>
         <div class="flex items-center space-x-6">

@@ -28,6 +28,37 @@ export const useAuthStore = defineStore('auth', {
                 return false;
             }
         },
+        async handleOAuthLogin(email, name, id) {
+            // ...
+            this.user = { id: id, email: email, userType: 'CLIENT', username: name || 'Google User' }; // Simplified with ID
+            this.isAuthenticated = true;
+            localStorage.setItem('user', JSON.stringify(this.user));
+
+            // Fetch cart immediately after login
+            const { useCartStore } = await import('./cart');
+            const cartStore = useCartStore();
+            cartStore.fetchCart();
+
+            return true;
+        },
+        async forgotPassword(email) {
+            try {
+                await api.post('/auth/forgot-password', null, { params: { email } });
+                return true;
+            } catch (err) {
+                this.error = err.response?.data || 'Failed to send reset link';
+                return false;
+            }
+        },
+        async resetPassword(token, newPassword) {
+            try {
+                await api.post('/auth/reset-password', newPassword, { params: { token }, headers: { 'Content-Type': 'text/plain' } });
+                return true;
+            } catch (err) {
+                this.error = err.response?.data || 'Failed to reset password';
+                return false;
+            }
+        },
         logout() {
             this.user = null;
             this.isAuthenticated = false;
