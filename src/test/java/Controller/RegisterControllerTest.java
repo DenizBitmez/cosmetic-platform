@@ -4,7 +4,6 @@ import com.cosmeticPlatform.CosmeticPlatform.controller.RegisterController;
 import com.cosmeticPlatform.CosmeticPlatform.model.User;
 import com.cosmeticPlatform.CosmeticPlatform.model.UserType;
 import com.cosmeticPlatform.CosmeticPlatform.model.request.UserRequestDTO;
-import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,12 +54,13 @@ public class RegisterControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"John Doe\", \"email\":\"john@example.com\", \"password\":\"password123\", \"userType\":\"CLIENT\"}"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                        "{\"name\":\"John Doe\", \"email\":\"john@example.com\", \"password\":\"password123\", \"userType\":\"CLIENT\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("John Doe"))
                 .andExpect(jsonPath("$.email").value("john@example.com"))
-//                .andExpect(jsonPath(".$password").value("password123"))
+                // .andExpect(jsonPath(".$password").value("password123"))
                 .andExpect(jsonPath("$.userType").value("CLIENT"));
     }
 

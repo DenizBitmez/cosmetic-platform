@@ -48,6 +48,7 @@ public class SecurityConfig {
                                         corsConfiguration.setAllowedMethods(
                                                         java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                                         corsConfiguration.setAllowedHeaders(java.util.List.of("*"));
+                                        corsConfiguration.setAllowCredentials(true);
                                         return corsConfiguration;
                                 }))
                                 .authorizeHttpRequests((authorize) -> authorize
@@ -59,6 +60,11 @@ public class SecurityConfig {
                                                 .requestMatchers("/v3/api-docs/**").permitAll()
                                                 // .requestMatchers("/api/user/all").hasAuthority("admin")
                                                 .requestMatchers("/api/product/**").permitAll()
+                                                .requestMatchers("/api/history/**").permitAll()
+                                                .requestMatchers("/api/cart/**").permitAll()
+                                                .requestMatchers("/api/address/**").permitAll()
+                                                .requestMatchers("/api/payment/**").permitAll()
+                                                .requestMatchers("/api/order/**").permitAll()
                                                 .requestMatchers("/api/reviews/**").permitAll()
                                                 .requestMatchers("/api/blog/**").permitAll()
                                                 .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "CLIENT", "EXPERT") // Kullanıcı

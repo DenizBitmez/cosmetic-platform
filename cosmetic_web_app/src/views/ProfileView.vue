@@ -214,12 +214,13 @@
                     You haven't viewed any products recently.
                 </div>
                  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div v-for="product in recentlyViewed" :key="product.id" class="group cursor-pointer">
+                     <div v-for="product in recentlyViewed" :key="product.id" class="group cursor-pointer">
                         <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg bg-gray-200 xl:aspect-w-7 xl:aspect-h-8">
-                             <div class="h-40 bg-cover bg-center group-hover:opacity-75" :style="{ backgroundImage: 'url(' + (product.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=200') + ')' }"></div>
+                             <div class="h-40 bg-cover bg-center group-hover:opacity-75" :style="{ backgroundImage: 'url(' + (product.productImage || product.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=200') + ')' }"></div>
                         </div>
-                        <h3 class="mt-2 text-sm text-gray-700 truncate">{{ product.name }}</h3>
-                        <p class="mt-1 text-lg font-medium text-brand-gold">${{ product.price }}</p>
+                        <h3 class="mt-2 text-sm text-gray-700 truncate font-medium">{{ product.productName || product.name }}</h3>
+                        <p class="mt-1 text-lg font-bold text-brand-gold">${{ product.productPrice || product.price }}</p>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-tighter">{{ product.productBrand || 'Premium' }}</p>
                     </div>
                  </div>
             </div>
@@ -354,7 +355,7 @@ const mockFaqs = [
 const orders = ref([]);
 const addresses = ref([]);
 const buyAgain = ref([]);
-const recentlyViewed = ref(JSON.parse(localStorage.getItem('recentlyViewed') || '[]'));
+const recentlyViewed = ref([]);
 const wallet = ref(mockCards);
 const coupons = ref(mockCoupons);
 const faqs = ref(mockFaqs);
@@ -441,6 +442,14 @@ onMounted(async () => {
         }
         
         await fetchAddresses();
+
+        // Fetch Recently Viewed
+        try {
+            const res = await api.get(`/history/viewed/${authStore.user.id}`);
+            recentlyViewed.value = res.data;
+        } catch (e) {
+            console.error("Failed to fetch recently viewed", e);
+        }
     }
 });
 </script>

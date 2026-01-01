@@ -23,9 +23,11 @@ public class CartController {
     }
 
     @PostMapping("/{userId}/add")
-    public ResponseEntity<Cart> addToCart(@PathVariable Integer userId, @RequestParam Integer productId,
-            @RequestParam int quantity) {
-        return ResponseEntity.ok(cartService.addToCart(userId, productId, quantity));
+    public ResponseEntity<Cart> addToCart(@PathVariable Integer userId,
+            @RequestParam Integer productId,
+            @RequestParam int quantity,
+            @RequestBody(required = false) com.cosmeticPlatform.CosmeticPlatform.model.Product product) {
+        return ResponseEntity.ok(cartService.addToCart(userId, productId, quantity, product));
     }
 
     @DeleteMapping("/{userId}/remove/{cartItemId}")

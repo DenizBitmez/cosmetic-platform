@@ -4,86 +4,123 @@
       <h1 class="text-3xl font-serif text-brand-dark mb-8">Checkout</h1>
 
       <div class="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
-        <!-- Left Column: Address Selection -->
-        <section class="lg:col-span-7 bg-white p-8 shadow-sm">
-          <h2 class="text-xl font-medium text-gray-900 mb-6 font-serif">Shipping Address</h2>
-          
-          <div v-if="addressStore.loading" class="text-gray-500">Loading addresses...</div>
-          
-          <div v-else class="space-y-4">
-             <!-- Address List -->
-             <div v-for="address in addressStore.addresses" :key="address.id" 
-                  class="relative flex items-center p-4 border rounded-sm cursor-pointer transition-colors"
-                  :class="selectedAddressId === address.id ? 'border-brand-gold bg-yellow-50/50' : 'border-gray-200 hover:border-gray-300'"
-                  @click="selectedAddressId = address.id">
-                  
-                  <div class="min-w-0 flex-1 text-sm">
-                    <div class="font-medium text-gray-900 block">{{ address.title }}</div>
-                    <div class="text-gray-500 mt-1 block">{{ address.fullAddress }}</div>
-                    <div class="text-gray-500 block">{{ address.district }}, {{ address.city }}</div>
-                  </div>
-                  <div class="ml-4 h-5 w-5 flex items-center justify-center border-gray-300">
-                     <div v-if="selectedAddressId === address.id" class="h-2.5 w-2.5 rounded-full bg-brand-gold"></div>
-                  </div>
-                  <button @click.stop="addressStore.deleteAddress(address.id)" class="ml-4 text-xs text-red-500 hover:text-red-700 underline">Delete</button>
-             </div>
-
-             <!-- Add Address Form Toggle -->
-             <button @click="showAddForm = !showAddForm" class="mt-4 flex items-center text-sm text-brand-dark hover:text-brand-gold font-medium">
-                <span v-if="!showAddForm">+ Add New Address</span>
-                <span v-else>- Cancel</span>
-             </button>
-
-             <!-- Add Address Form -->
-             <form v-if="showAddForm" @submit.prevent="handleAddressSubmit" class="mt-6 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4 border-t border-gray-100 pt-6">
-                 <div class="sm:col-span-2">
-                   <label class="block text-sm font-medium text-gray-700">Address Title (e.g. Home)</label>
-                   <input v-model="newAddress.title" type="text" required class="mt-1 block w-full border-gray-300 rounded-none shadow-sm focus:ring-brand-gold focus:border-brand-gold sm:text-sm p-3 border">
-                 </div>
-                 
-                 <div>
-                   <label class="block text-sm font-medium text-gray-700">City</label>
-                   <input v-model="newAddress.city" type="text" required class="mt-1 block w-full border-gray-300 rounded-none shadow-sm focus:ring-brand-gold focus:border-brand-gold sm:text-sm p-3 border">
-                 </div>
-                 
-                 <div>
-                   <label class="block text-sm font-medium text-gray-700">District</label>
-                   <input v-model="newAddress.district" type="text" required class="mt-1 block w-full border-gray-300 rounded-none shadow-sm focus:ring-brand-gold focus:border-brand-gold sm:text-sm p-3 border">
-                 </div>
-
-                 <div class="sm:col-span-2">
-                   <label class="block text-sm font-medium text-gray-700">Full Address</label>
-                   <textarea v-model="newAddress.fullAddress" rows="3" required class="mt-1 block w-full border-gray-300 rounded-none shadow-sm focus:ring-brand-gold focus:border-brand-gold sm:text-sm p-3 border"></textarea>
-                 </div>
-
-                 <div class="sm:col-span-2">
-                    <button type="submit" class="w-full bg-gray-900 text-white py-3 px-4 uppercase tracking-widest text-xs font-bold hover:bg-gray-800 transition-colors">
-                        Save Address
+        <!-- Left Column: Address Selection & Payment -->
+        <section class="lg:col-span-7 space-y-8">
+          <!-- Shipping Address -->
+          <div class="bg-white p-8 shadow-sm">
+            <h2 class="text-xl font-medium text-gray-900 mb-6 font-serif">Shipping Address</h2>
+            
+            <div v-if="addressStore.loading" class="text-gray-500">Loading addresses...</div>
+            
+            <div v-else class="space-y-4">
+               <!-- Address List -->
+                <div v-for="address in addressStore.addresses" :key="address.id" 
+                    class="relative flex items-center p-5 border-2 rounded-lg cursor-pointer transition-all duration-300 transform"
+                    :class="selectedAddressId == address.id ? 'border-brand-gold bg-yellow-50/70 scale-[1.02] shadow-md ring-2 ring-brand-gold' : 'border-gray-100 hover:border-gray-200 bg-white'"
+                    @click="selectAddress(address.id)">
+                    
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-brand-gold bg-yellow-100 px-2 py-1 rounded">
+                          {{ address.title }}
+                        </span>
+                        <div v-if="selectedAddressId == address.id" class="flex items-center text-brand-gold">
+                           <PhCheckCircle :size="20" weight="fill" />
+                        </div>
+                      </div>
+                      <div class="text-gray-800 font-medium line-clamp-2 mb-1">{{ address.fullAddress }}</div>
+                      <div class="text-gray-500 text-sm font-light">{{ address.district }}, {{ address.city }}</div>
+                    </div>
+                    <button @click.stop="addressStore.deleteAddress(address.id)" class="ml-4 p-2 text-gray-300 hover:text-red-500 transition-colors">
+                      <PhTrash :size="18" />
                     </button>
-                 </div>
-             </form>
+               </div>
+
+               <!-- Add Address Form Toggle -->
+               <button @click="showAddForm = !showAddForm" class="mt-4 flex items-center text-sm text-brand-dark hover:text-brand-gold font-medium">
+                  <span v-if="!showAddForm">+ Add New Address</span>
+                  <span v-else>- Cancel</span>
+               </button>
+
+               <!-- Add Address Form -->
+               <form v-if="showAddForm" @submit.prevent="handleAddressSubmit" class="mt-6 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4 border-t border-gray-100 pt-6">
+                   <div class="sm:col-span-2">
+                     <label class="block text-sm font-medium text-gray-700">Address Title (e.g. Home)</label>
+                     <input v-model="newAddress.title" type="text" required class="mt-1 block w-full border-gray-300 rounded-none shadow-sm focus:ring-brand-gold focus:border-brand-gold sm:text-sm p-3 border">
+                   </div>
+                   
+                   <div>
+                     <label class="block text-sm font-medium text-gray-700">City</label>
+                     <input v-model="newAddress.city" type="text" required class="mt-1 block w-full border-gray-300 rounded-none shadow-sm focus:ring-brand-gold focus:border-brand-gold sm:text-sm p-3 border">
+                   </div>
+                   
+                   <div>
+                     <label class="block text-sm font-medium text-gray-700">District</label>
+                     <input v-model="newAddress.district" type="text" required class="mt-1 block w-full border-gray-300 rounded-none shadow-sm focus:ring-brand-gold focus:border-brand-gold sm:text-sm p-3 border">
+                   </div>
+
+                   <div class="sm:col-span-2">
+                     <label class="block text-sm font-medium text-gray-700">Full Address</label>
+                     <textarea v-model="newAddress.fullAddress" rows="3" required class="mt-1 block w-full border-gray-300 rounded-none shadow-sm focus:ring-brand-gold focus:border-brand-gold sm:text-sm p-3 border"></textarea>
+                   </div>
+
+                   <div class="sm:col-span-2">
+                      <button type="submit" class="w-full bg-gray-900 text-white py-3 px-4 uppercase tracking-widest text-xs font-bold hover:bg-gray-800 transition-colors">
+                          Save Address
+                      </button>
+                   </div>
+               </form>
+            </div>
+          </div>
+
+          <!-- Payment -->
+          <div class="bg-white p-8 shadow-sm">
+            <h2 class="text-xl font-medium text-gray-900 mb-6 font-serif">Payment Method</h2>
+            <div v-if="!stripeLoaded && !paymentError" class="mb-4 p-4 bg-blue-50 border border-blue-100 rounded text-center">
+                <p class="text-[10px] text-blue-600 animate-pulse font-bold uppercase">
+                  Initializing Payment System ({{ stripeStep }})...
+                </p>
+            </div>
+            <div id="payment-element" v-show="stripeLoaded">
+              <!-- Stripe Elements mounted here -->
+            </div>
+            <div v-if="paymentError" class="mt-4 p-4 bg-red-50 border border-red-100 rounded-md">
+              <p class="text-sm text-red-600 mb-3">{{ paymentError }}</p>
+              <button @click="useMockPayment" class="text-xs font-bold text-red-700 underline uppercase tracking-widest hover:text-red-800">
+                Skip Payment (Demo Mode)
+              </button>
+            </div>
           </div>
         </section>
 
         <!-- Right Column: Order Summary -->
-        <section class="lg:col-span-5 mt-16 lg:mt-0 bg-white p-8 shadow-sm">
+        <section class="lg:col-span-5 mt-16 lg:mt-0 bg-white p-8 shadow-sm border border-gray-100 rounded-sm sticky top-28">
           <h2 class="text-xl font-medium text-gray-900 mb-6 font-serif">Order Summary</h2>
 
-          <div v-if="!cartStore.cart || cartStore.cart.cartItems.length === 0">
-             <p class="text-gray-500">Your cart is empty.</p>
-             <router-link to="/" class="block mt-4 text-brand-gold hover:underline">Go shopping</router-link>
+          <div v-if="cartStore.loading && !cartStore.cart" class="flex flex-col items-center py-12">
+             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
+             <p class="mt-4 text-sm text-gray-500">Loading your cart...</p>
+          </div>
+
+          <div v-else-if="!cartStore.cart || cartStore.cart.cartItems.length === 0">
+             <div class="text-center py-8">
+               <PhShoppingCart :size="48" class="mx-auto text-gray-200 mb-4" />
+               <p class="text-gray-500">Your cart is empty.</p>
+               <router-link to="/" class="block mt-4 text-brand-gold hover:underline font-medium">Continue Shopping</router-link>
+             </div>
           </div>
 
           <div v-else class="flow-root">
             <ul role="list" class="-my-4 divide-y divide-gray-200">
               <li v-for="item in cartStore.cart.cartItems" :key="item.id" class="flex items-center py-4">
-                <div class="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                   <!-- Fallback Image -->
-                   <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop" class="h-full w-full object-cover object-center">
+                <div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-100 bg-gray-50 flex items-center justify-center">
+                   <img :src="item.product.image || 'https://images.unsplash.com/photo-1596462502278-27bfdc4033c8?q=80&w=200&auto=format&fit=crop'" 
+                        @error="(e) => e.target.src = 'https://images.unsplash.com/photo-1596462502278-27bfdc4033c8?q=80&w=200&auto=format&fit=crop'"
+                        class="h-full w-full object-contain p-1">
                 </div>
                 <div class="ml-4 flex-1">
                   <div class="flex justify-between text-base font-medium text-gray-900">
-                    <h3>{{ item.product.name }}</h3>
+                    <h3 class="line-clamp-1 pr-4">{{ item.product.name }}</h3>
                     <p class="ml-4">${{ item.product.price }}</p>
                   </div>
                   <p class="mt-1 text-sm text-gray-500">Qty {{ item.quantity }}</p>
@@ -106,14 +143,36 @@
               </div>
 
               <div class="mt-6">
-                <button @click="handlePlaceOrder" :disabled="!selectedAddressId || processing" 
-                        class="w-full bg-brand-gold border border-transparent py-4 px-4 text-sm font-medium text-white shadow-sm hover:bg-yellow-600 focus:outline-none transition-colors uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed">
-                  {{ processing ? 'Processing...' : 'Confirm Order' }}
+                <button @click="handleSubmitPayment" :disabled="!isAddressSelected || processing || !stripeLoaded" 
+                        class="w-full bg-brand-gold border border-transparent py-4 px-4 text-sm font-medium text-white shadow-sm hover:bg-yellow-600 focus:outline-none transition-all uppercase tracking-widest disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center justify-center">
+                  <div v-if="processing" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {{ processing ? 'Processing...' : 'Confirm & Pay' }}
                 </button>
               </div>
-              <p v-if="!selectedAddressId && cartStore.itemCount > 0" class="mt-2 text-sm text-red-500 text-center">
-                  Please select a shipping address.
-              </p>
+              
+              <div v-if="!isAddressSelected && cartStore.itemCount > 0" class="mt-3 p-3 bg-red-50 border border-red-100 rounded text-center">
+                  <p class="text-xs text-red-600 font-bold uppercase tracking-tight">
+                    <PhWarning class="inline-block mr-1" />
+                    Please add or select a shipping address
+                  </p>
+              </div>
+              
+              <!-- Debug Info (Temporary) -->
+              <div class="mt-8 p-4 bg-gray-900 border-l-4 border-green-500 text-green-400 text-[10px] font-mono rounded shadow-xl">
+                <p class="text-white font-bold mb-2">DEBUG CONSOLE (Dev Only)</p>
+                <p>> User Authenticated: {{ authStore.isAuthenticated }}</p>
+                <p>> selectedAddressId: {{ selectedAddressId || 'UNDEFINED' }}</p>
+                <p>> isAddressSelected: {{ isAddressSelected }}</p>
+                <p>> addressesCount: {{ addressStore.addresses.length }}</p>
+                <p>> stripeLoaded: {{ stripeLoaded }}</p>
+                <p>> initializing: {{ initializing }}</p>
+                <p>> stripeStep: {{ stripeStep }}</p>
+                <p>> paymentError: {{ paymentError || 'none' }}</p>
+                <p>> cartItemCount: {{ cartStore.itemCount }}</p>
+                <p>> cartTotalAmount: {{ cartStore.totalAmount }}</p>
+                <p>> Backend Status: {{ cartStore.cart ? 'CONNECTED' : 'FETCHING/DISCONNECTED' }}</p>
+                <p>> Stripe Public Key: {{ publicKeySnapshot || 'NOT_LOADED' }}</p>
+              </div>
             </div>
           </div>
         </section>
@@ -123,12 +182,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, nextTick, computed } from 'vue';
 import { useCartStore } from '@/stores/cart';
 import { useAddressStore } from '@/stores/address';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
+import { loadStripe } from '@stripe/stripe-js';
+import { PhShoppingCart, PhCheckCircle, PhTrash, PhWarning } from '@phosphor-icons/vue';
 
 const cartStore = useCartStore();
 const addressStore = useAddressStore();
@@ -138,6 +199,20 @@ const router = useRouter();
 const selectedAddressId = ref(null);
 const showAddForm = ref(false);
 const processing = ref(false);
+const stripeLoaded = ref(false);
+const initializing = ref(false);
+const stripeStep = ref('IDLE');
+const paymentError = ref(null);
+const publicKeySnapshot = ref(null);
+
+const isAddressSelected = computed(() => {
+    if (!selectedAddressId.value) return false;
+    return addressStore.addresses.some(a => a.id == selectedAddressId.value);
+});
+
+let stripe = null;
+let elements = null;
+let paymentElement = null;
 
 const newAddress = reactive({
     title: '',
@@ -146,39 +221,157 @@ const newAddress = reactive({
     fullAddress: ''
 });
 
-onMounted(() => {
+onMounted(async () => {
+    console.log("CheckoutView mounted, checking auth...");
     if (!authStore.isAuthenticated) {
         router.push('/login');
         return;
     }
-    addressStore.fetchAddresses();
-    if (!cartStore.cart) {
-        cartStore.fetchCart();
+    
+    // Start address fetch
+    console.log("Fetching addresses...");
+    await addressStore.fetchAddresses();
+    if (addressStore.addresses.length > 0) {
+        if (!selectedAddressId.value) {
+            selectedAddressId.value = addressStore.addresses[0].id;
+        }
+    } else {
+        console.log("No addresses found, showing add form...");
+        showAddForm.value = true;
+    }
+
+    // Ensure cart is loaded
+    if (!cartStore.cart || cartStore.cart.cartItems.length === 0) {
+        console.log("Fetching cart...");
+        await cartStore.fetchCart();
+    }
+    
+    console.log("Cart total:", cartStore.totalAmount);
+    // Initialize Stripe only after cart total is known and > 0
+    if (cartStore.totalAmount > 0) {
+        await initStripe();
     }
 });
+
+import { watch } from 'vue';
+watch(() => cartStore.totalAmount, async (newTotal) => {
+    if (newTotal > 0 && !stripe) {
+        await initStripe();
+    }
+});
+
+const initStripe = async () => {
+    if (initializing.value || stripeLoaded.value || !cartStore.cart || cartStore.totalAmount <= 0) {
+        console.log("Stripe init skipped", { initializing: initializing.value, loaded: stripeLoaded.value, total: cartStore.totalAmount });
+        return;
+    }
+    
+    initializing.value = true;
+    stripeStep.value = 'STARTING';
+    
+    // Add a safety timeout
+    const timeout = setTimeout(() => {
+        if (!stripeLoaded.value && !paymentError.value) {
+            stripeStep.value = 'TIMEOUT';
+            paymentError.value = "Stripe initialization is taking too long. Step: " + stripeStep.value;
+        }
+    }, 15000);
+
+    try {
+        stripeStep.value = 'FETCH_CONFIG';
+        const { data } = await api.get('/payment/config');
+        publicKeySnapshot.value = data.publicKey;
+        
+        stripeStep.value = 'LOAD_STRIPE_JS';
+        stripe = await loadStripe(data.publicKey);
+        if (!stripe) throw new Error("Stripe.js failed to load.");
+
+        stripeStep.value = 'CREATE_PAYMENT_INTENT';
+        const response = await api.post('/payment/create-payment-intent', {
+            amount: cartStore.totalAmount
+        });
+        const clientSecret = response.data.clientSecret;
+        
+        stripeStep.value = 'CREATE_ELEMENTS';
+        elements = stripe.elements({ clientSecret, locale: 'en' });
+        paymentElement = elements.create('payment');
+        
+        stripeStep.value = 'MOUNT_ELEMENT';
+        await nextTick();
+        const el = document.getElementById('payment-element');
+        if (el) {
+            paymentElement.mount('#payment-element');
+            stripeLoaded.value = true;
+            stripeStep.value = 'SUCCESS';
+        } else {
+            throw new Error("Target element #payment-element not found.");
+        }
+    } catch (err) {
+        stripeStep.value = 'ERROR';
+        console.error("Stripe initialization failed", err);
+        paymentError.value = err.response?.data?.message || err.message || "Failed to load payment system.";
+    } finally {
+        initializing.value = false;
+        clearTimeout(timeout);
+    }
+};
+
+const useMockPayment = () => {
+    alert("DEMO MODE: Simulating payment success...");
+    handlePlaceOrder();
+};
+
+const selectAddress = (id) => {
+    console.log("Selecting address:", id);
+    selectedAddressId.value = id;
+};
 
 const handleAddressSubmit = async () => {
     const success = await addressStore.addAddress(newAddress);
     if (success) {
         showAddForm.value = false;
-        // Reset form
         newAddress.title = '';
         newAddress.city = '';
         newAddress.district = '';
         newAddress.fullAddress = '';
-        // Select the newly added address (optimized: last one)
+        await addressStore.fetchAddresses(); // Refresh to get the new id
         if (addressStore.addresses.length > 0) {
             selectedAddressId.value = addressStore.addresses[addressStore.addresses.length - 1].id;
         }
     }
 };
 
-const handlePlaceOrder = async () => {
-    if (!selectedAddressId.value) return;
+const handleSubmitPayment = async () => {
+    if (!selectedAddressId.value || processing.value) return;
     
     processing.value = true;
+    paymentError.value = null;
+
     try {
-        // API: /api/order/create/{userId}?addressId={addressId}
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: `${window.location.origin}/`,
+            },
+            redirect: 'if_required'
+        });
+
+        if (error) {
+            paymentError.value = error.message;
+            processing.value = false;
+        } else {
+            // Payment successful, now create the order
+            await handlePlaceOrder();
+        }
+    } catch (err) {
+        console.error("Payment failed", err);
+        paymentError.value = "An unexpected error occurred.";
+        processing.value = false;
+    }
+};
+
+const handlePlaceOrder = async () => {
+    try {
         const userId = authStore.user.id;
         const addressId = selectedAddressId.value;
         
@@ -186,12 +379,12 @@ const handlePlaceOrder = async () => {
             params: { addressId }
         });
         
-        alert("Order placed successfully! Thank you for your purchase.");
-        await cartStore.fetchCart(); // Clear cart in UI (backend should have cleared it)
-        router.push('/'); // Redirect home
+        alert("Payment successful! Your order has been placed.");
+        await cartStore.fetchCart(); 
+        router.push('/');
     } catch (err) {
-        console.error("Order failed", err);
-        alert("Failed to place order. " + (err.response?.data?.message || ''));
+        console.error("Order completion failed", err);
+        alert("Payment was successful but we failed to record your order. Please contact support.");
     } finally {
         processing.value = false;
     }

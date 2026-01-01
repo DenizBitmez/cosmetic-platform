@@ -127,13 +127,16 @@ import api from '@/services/api';
 import ProductCard from '@/components/ProductCard.vue';
 import ProductDetailModal from '@/components/ProductDetailModal.vue';
 import { PhSparkle, PhPlant, PhTruck } from '@phosphor-icons/vue';
+import { useProductStore } from '@/stores/product';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const products = ref([]);
+const productStore = useProductStore();
+
+const products = computed(() => productStore.latestArrivals);
 const blogPosts = ref([]);
-const loading = ref(true);
-const error = ref(null);
+const loading = computed(() => productStore.loading);
+const error = computed(() => productStore.error);
 const selectedProduct = ref(null);
 
 const fetchBlogPosts = async () => {
@@ -150,30 +153,14 @@ const filteredProducts = computed(() => {
 });
 
 const handleRemove = (productToRemove) => {
-    products.value = products.value.filter(p => p.id !== productToRemove.id);
+    // Note: If we want to support local removal with cache, 
+    // we should probably have a local filtered state or update the store.
+    // For now, keeping it simple as the user asked for caching.
+    productStore.latestArrivals = productStore.latestArrivals.filter(p => p.id !== productToRemove.id);
 };
 
 onMounted(async () => {
-    try {
-        // Fetch "New Arrivals" - using nail_polish for variety
-        const response = await fetch('https://makeup-api.herokuapp.com/api/v1/products.json?product_type=nail_polish');
-        if (!response.ok) throw new Error('API Error');
-        const data = await response.json();
-        
-        products.value = data
-            .filter(p => p.price && parseFloat(p.price) > 0 && p.image_link && p.image_link.length > 10)
-            .map(p => ({
-                ...p,
-                image: p.image_link.replace('http://', 'https://'),
-                price: p.price
-            }));
-        
-        await fetchBlogPosts();
-    } catch (err) {
-        console.error('Failed to fetch products', err);
-        error.value = "Unable to load catalogue.";
-    } finally {
-        loading.value = false;
-    }
+    await productStore.fetchLatestArrivals();
+    await fetchBlogPosts();
 });
 </script>

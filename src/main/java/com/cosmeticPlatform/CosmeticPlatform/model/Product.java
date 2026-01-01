@@ -14,7 +14,6 @@ public class Product {
     private String name;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private String category;

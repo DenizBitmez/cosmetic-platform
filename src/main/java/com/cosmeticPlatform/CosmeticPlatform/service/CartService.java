@@ -46,14 +46,22 @@ public class CartService {
     }
 
     @Transactional
-    public Cart addToCart(Integer userId, Integer productId, int quantity) {
+    public Cart addToCart(Integer userId, Integer productId, int quantity, Product productData) {
         Cart cart = getCartByUserId(userId);
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        Product product = productRepository.findById(productId).orElseGet(() -> {
+            if (productData != null) {
+                // Ensure the ID is set correctly
+                productData.setId(productId);
+                if (productData.getStock() == 0)
+                    productData.setStock(100); // Default stock for external
+                return productRepository.save(productData);
+            }
+            throw new RuntimeException("Product not found and no data provided");
+        });
 
         Optional<CartItem> existingItem = cart.getCartItems().stream()
-                .filter(item -> item.getProduct().getId() == productId) // Product ID is int, primitive comparison
-                                                                        // works, but getId returns int.
+                .filter(item -> item.getProduct().getId() == productId)
                 .findFirst();
 
         if (existingItem.isPresent()) {
@@ -64,12 +72,6 @@ public class CartService {
             newItem.setCart(cart);
             newItem.setProduct(product);
             newItem.setQuantity(quantity);
-            // Assuming simplified price handling - current product price.
-            // Note: Product entity doesn't show price field in previous reads.
-            // Let's assume Product has price or we use 0.0 for now if not found, usually it
-            // should be in Product.
-            // I will check Product entity again.
-            // For now I will set price to 0.0 if not found.
             newItem.setPrice(product.getPrice());
             cart.getCartItems().add(newItem);
         }

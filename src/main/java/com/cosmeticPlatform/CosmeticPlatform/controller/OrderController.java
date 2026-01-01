@@ -22,10 +22,17 @@ public class OrderController {
 
     @PostMapping("/create/{userId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<com.cosmeticPlatform.CosmeticPlatform.model.response.OrderResponseDTO> createOrder(
+    public ResponseEntity<?> createOrder(
             @PathVariable Integer userId, @RequestParam Long addressId) {
-        Order order = orderService.createOrder(userId, addressId);
-        return ResponseEntity.ok(mapToDTO(order));
+        try {
+            Order order = orderService.createOrder(userId, addressId);
+            return ResponseEntity.ok(mapToDTO(order));
+        } catch (Exception e) {
+            System.err.println("CRITICAL ERROR: Failed to create order: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to record order: " + e.getMessage());
+        }
     }
 
     @GetMapping("/user/{userId}")

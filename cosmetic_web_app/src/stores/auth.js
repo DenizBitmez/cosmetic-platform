@@ -16,7 +16,7 @@ export const useAuthStore = defineStore('auth', {
                 this.isAuthenticated = true;
                 localStorage.setItem('user', JSON.stringify(this.user));
 
-                // Fetch cart immediately after login
+                // Fetch extra data
                 const { useCartStore } = await import('./cart');
                 const cartStore = useCartStore();
                 cartStore.fetchCart();
@@ -57,6 +57,19 @@ export const useAuthStore = defineStore('auth', {
             } catch (err) {
                 this.error = err.response?.data || 'Failed to reset password';
                 return false;
+            }
+        },
+        async checkSession() {
+            if (!this.isAuthenticated) return;
+            try {
+                const response = await api.get(`/user/${this.user.id}`);
+                this.user = response.data;
+                localStorage.setItem('user', JSON.stringify(this.user));
+            } catch (err) {
+                console.error("Session verification failed", err);
+                if (err.response?.status === 401 || err.response?.status === 403) {
+                    this.logout();
+                }
             }
         },
         logout() {

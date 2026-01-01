@@ -29,7 +29,7 @@
                       </li>
                       <li v-else v-for="item in cartStore.cart.cartItems" :key="item.id" class="flex py-6">
                         <div class="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                          <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop" class="h-full w-full object-cover object-center">
+                          <img :src="item.product.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop'" class="h-full w-full object-cover object-center">
                         </div>
 
                         <div class="ml-4 flex flex-1 flex-col">
@@ -59,7 +59,7 @@
               <div class="border-t border-gray-200 px-4 py-6 sm:px-6">
                 <div class="flex justify-between text-base font-medium text-gray-900">
                   <p>Subtotal</p>
-                  <p>${{ cartStore.totalAmount }}</p>
+                  <p>${{ cartStore.totalAmount.toFixed(2) }}</p>
                 </div>
                 <p class="mt-0.5 text-sm text-gray-500">Shipping and taxes calculated at checkout.</p>
                 <div class="mt-6">

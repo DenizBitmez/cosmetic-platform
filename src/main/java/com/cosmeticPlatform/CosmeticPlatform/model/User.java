@@ -39,4 +39,8 @@ public class User {
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private java.util.List<Order> orders;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private java.util.List<RecentlyViewed> recentlyViewed;
 }

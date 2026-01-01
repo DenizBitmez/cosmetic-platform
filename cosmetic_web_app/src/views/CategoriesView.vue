@@ -75,70 +75,35 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
-import api from '@/services/api';
+import { useProductStore } from '@/stores/product';
 import ProductDetailModal from '@/components/ProductDetailModal.vue';
+
+const productStore = useProductStore();
 
 const categories = ['lipstick', 'mascara', 'foundation', 'eyeliner', 'eyeshadow', 'blush', 'bronzer', 'eyebrow', 'lip_liner', 'nail_polish'];
 const selectedCategory = ref('foundation'); // Default category
-const products = ref([]);
-const loading = ref(false);
+const products = computed(() => productStore.categoriesCache[selectedCategory.value] || []);
+const loading = computed(() => productStore.loading);
 const selectedProduct = ref(null);
 const searchQuery = ref('');
 const sortBy = ref('featured');
 const activeTab = ref('overview'); // Default tab changed to overview
 
-const getIngredientsForProduct = (product) => {
-    // This is now handled inside ProductDetailModal component
-    return [];
-};
-
 const fetchProducts = async (category) => {
     selectedCategory.value = category;
-    loading.value = true;
-    products.value = [];
     try {
-        // Fetch from External API for "Real Products"
-        // Note: The API defaults to 'lipstick' if product_type is missing/invalid, but we pass category
-        const url = `https://makeup-api.herokuapp.com/api/v1/products.json?product_type=${category}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('API Error');
-        
-        const data = await res.json();
-        
-        if (!data || data.length === 0) throw new Error('No data from API');
-
-        // Filter and Map external API fields
-        const validProducts = data.filter(p => 
-            p.price && parseFloat(p.price) > 0 && 
-            p.image_link && p.image_link.trim().length > 10 // Basic length check
-        );
-
-        products.value = validProducts.map(p => ({
-            ...p,
-            // Ensure HTTPS for images to avoid visual glitches or mixed content blocks
-            image: p.image_link.replace('http://', 'https://'), 
-            price: p.price
-        }));
-        
+        await productStore.fetchByCategory(category);
     } catch (e) {
         console.error("Failed to fetch products", e);
-        // Fallback to FALLBACK_MOCK directly if API fails
-         if (category === 'all') {
-            products.value = MOCK_PRODUCTS_FALLBACK;
-        } else {
-            const mockMatches = MOCK_PRODUCTS_FALLBACK.filter(p => !p.category || p.category === category);
-            // If we have matches use them, otherwise use all to ensure something shows
-            products.value = mockMatches.length > 0 ? mockMatches : MOCK_PRODUCTS_FALLBACK;
-        }
-    } finally {
-        loading.value = false;
+        // Fallback or error handled by store/view
     }
 };
 
 const handleImageError = (productToRemove) => {
-    // If an image fails to load, remove the product from the list to maintain a premium feel
-    // independent of whether it's filtered or raw list
-    products.value = products.value.filter(p => p.id !== productToRemove.id);
+    if (productStore.categoriesCache[selectedCategory.value]) {
+        productStore.categoriesCache[selectedCategory.value] = 
+            productStore.categoriesCache[selectedCategory.value].filter(p => p.id !== productToRemove.id);
+    }
 };
 
 const filteredProducts = computed(() => {
@@ -166,7 +131,7 @@ const openProduct = (product) => {
 };
 
 watch(() => selectedCategory.value, (newCat) => {
-    // Watcher logic if needed, but fetchProducts sets selectedCategory
+    // Watcher logic if needed
 });
 
 onMounted(() => {

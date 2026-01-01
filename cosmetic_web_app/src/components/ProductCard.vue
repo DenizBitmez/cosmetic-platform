@@ -45,7 +45,13 @@ const addToCart = async () => {
     }
 
     loading.value = true;
-    const success = await cartStore.addToCart(props.product.id, 1);
+    const success = await cartStore.addToCart(props.product.id, 1, {
+        id: props.product.id,
+        name: props.product.name,
+        category: props.product.product_type || props.product.category || 'Beauty',
+        price: parseFloat(props.product.price) || 0,
+        stock: 100
+    });
     
     if (success) {
          cartStore.toggleDrawer(true);

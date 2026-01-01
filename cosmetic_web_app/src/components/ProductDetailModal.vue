@@ -244,7 +244,13 @@ const handleAddToCart = async () => {
         return;
     }
 
-    const success = await cartStore.addToCart(props.product.id, 1);
+    const success = await cartStore.addToCart(props.product.id, 1, {
+        id: props.product.id,
+        name: props.product.name,
+        category: props.product.product_type || props.product.category || 'Beauty',
+        price: parseFloat(props.product.price) || 0,
+        stock: 100
+    });
     
     if (success) {
          cartStore.toggleDrawer(true);
@@ -253,6 +259,31 @@ const handleAddToCart = async () => {
         alert("Failed to add to cart. Please try again.");
     }
 };
+
+const trackViewed = async () => {
+    if (props.product && authStore.isAuthenticated && authStore.user?.id) {
+        try {
+            await api.post(`/history/viewed/${authStore.user.id}`, {
+                externalProductId: props.product.id,
+                productName: props.product.name,
+                productImage: props.product.image,
+                productBrand: props.product.brand,
+                productPrice: props.product.price
+            });
+        } catch (e) {
+            console.error("Failed to track viewed product", e);
+        }
+    }
+};
+
+import { watch } from 'vue';
+import api from '@/services/api';
+
+watch(() => props.product, (newVal) => {
+    if (newVal) {
+        trackViewed();
+    }
+}, { immediate: true });
 </script>
 
 <style scoped>

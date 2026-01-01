@@ -37,10 +37,13 @@ public class AddressService {
     }
 
     public List<Address> getUserAddresses(Integer userId) {
-        return addressRepository.findByUserId(userId);
+        return addressRepository.findByUserIdAndActiveTrue(userId);
     }
 
     public void deleteAddress(Long addressId) {
-        addressRepository.deleteById(addressId);
+        addressRepository.findById(addressId).ifPresent(address -> {
+            address.setActive(false);
+            addressRepository.save(address);
+        });
     }
 }

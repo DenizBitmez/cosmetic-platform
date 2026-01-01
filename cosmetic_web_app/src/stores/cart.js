@@ -14,8 +14,11 @@ export const useCartStore = defineStore('cart', {
         totalAmount: (state) => state.cart?.totalAmount || 0,
     },
     actions: {
-        toggleDrawer(isOpen) {
+        async toggleDrawer(isOpen) {
             this.drawerOpen = isOpen !== undefined ? isOpen : !this.drawerOpen;
+            if (this.drawerOpen && !this.cart) {
+                await this.fetchCart();
+            }
         },
         async fetchCart() {
             const auth = useAuthStore();
@@ -32,7 +35,7 @@ export const useCartStore = defineStore('cart', {
             }
         },
 
-        async addToCart(productId, quantity = 1) {
+        async addToCart(productId, quantity = 1, productData = null) {
             const auth = useAuthStore();
             if (!auth.isAuthenticated) {
                 // Redirect to login or show notification
@@ -42,7 +45,8 @@ export const useCartStore = defineStore('cart', {
             this.loading = true;
             try {
                 // API expects query params: ?productId=...&quantity=...
-                const response = await api.post(`/cart/${auth.user.id}/add`, null, {
+                // And optional body for product details
+                const response = await api.post(`/cart/${auth.user.id}/add`, productData, {
                     params: { productId, quantity }
                 });
                 this.cart = response.data;
