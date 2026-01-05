@@ -31,7 +31,7 @@
                       <div class="text-gray-800 font-medium line-clamp-2 mb-1">{{ address.fullAddress }}</div>
                       <div class="text-gray-500 text-sm font-light">{{ address.district }}, {{ address.city }}</div>
                     </div>
-                    <button @click.stop="addressStore.deleteAddress(address.id)" class="ml-4 p-2 text-gray-300 hover:text-red-500 transition-colors">
+                    <button @click.stop="addressStore.deleteAddress(address.id)" class="ml-4 p-2 text-red-500 hover:text-red-700 transition-all bg-red-50 rounded-full border border-red-100 shadow-sm opacity-100">
                       <PhTrash :size="18" />
                     </button>
                </div>
@@ -81,9 +81,33 @@
                   Initializing Payment System ({{ stripeStep }})...
                 </p>
             </div>
-            <div id="payment-element" v-show="stripeLoaded">
+            <div id="payment-element" v-show="stripeLoaded" class="min-h-[250px]">
               <!-- Stripe Elements mounted here -->
             </div>
+            
+            <!-- Amazon Pay / Cash App Premium Help Section -->
+            <transition name="fade">
+              <div v-if="showAmazonHelp" class="mt-3 p-6 bg-yellow-50 rounded-2xl border-2 border-brand-gold/20 shadow-sm animate-fade-in relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-5 text-brand-gold">
+                   <PhQuestion :size="80" />
+                </div>
+                <div class="relative z-10 flex items-start gap-5">
+                    <div class="bg-white p-3 rounded-xl shadow-md border border-brand-gold/30">
+                       <PhQuestion :size="28" class="text-brand-gold" />
+                    </div>
+                    <div>
+                       <h3 class="text-base font-bold text-brand-dark mb-2">Amazon Pay Assistance</h3>
+                       <p class="text-sm text-gray-600 leading-relaxed mb-4">
+                          If the Amazon Pay window didn't open or appeared as a blank area, please ensure pop-ups are allowed or click the button below to open it manually.
+                       </p>
+                       <a href="https://pay.amazon.com" target="_blank" class="inline-flex items-center gap-3 text-sm font-bold text-white bg-gray-900 px-5 py-2.5 rounded-xl shadow-lg hover:bg-black transition-all hover:scale-[1.02] active:scale-[0.98]">
+                          Open Amazon Pay Portal 
+                          <PhArrowSquareUpRight :size="10" />
+                       </a>
+                    </div>
+                </div>
+              </div>
+            </transition>
             <div v-if="paymentError" class="mt-4 p-4 bg-red-50 border border-red-100 rounded-md">
               <p class="text-sm text-red-600 mb-3">{{ paymentError }}</p>
               <button @click="useMockPayment" class="text-xs font-bold text-red-700 underline uppercase tracking-widest hover:text-red-800">
@@ -114,9 +138,9 @@
             <ul role="list" class="-my-4 divide-y divide-gray-200">
               <li v-for="item in cartStore.cart.cartItems" :key="item.id" class="flex items-center py-4">
                 <div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-100 bg-gray-50 flex items-center justify-center">
-                   <img :src="item.product.image || 'https://images.unsplash.com/photo-1596462502278-27bfdc4033c8?q=80&w=200&auto=format&fit=crop'" 
-                        @error="(e) => e.target.src = 'https://images.unsplash.com/photo-1596462502278-27bfdc4033c8?q=80&w=200&auto=format&fit=crop'"
-                        class="h-full w-full object-contain p-1">
+                  <img :src="item.product.image" 
+                       @error="(e) => e.target.src = 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=400&auto=format&fit=crop'"
+                       class="h-full w-full object-contain p-1 transition-opacity duration-300">
                 </div>
                 <div class="ml-4 flex-1">
                   <div class="flex justify-between text-base font-medium text-gray-900">
@@ -156,23 +180,6 @@
                     Please add or select a shipping address
                   </p>
               </div>
-              
-              <!-- Debug Info (Temporary) -->
-              <div class="mt-8 p-4 bg-gray-900 border-l-4 border-green-500 text-green-400 text-[10px] font-mono rounded shadow-xl">
-                <p class="text-white font-bold mb-2">DEBUG CONSOLE (Dev Only)</p>
-                <p>> User Authenticated: {{ authStore.isAuthenticated }}</p>
-                <p>> selectedAddressId: {{ selectedAddressId || 'UNDEFINED' }}</p>
-                <p>> isAddressSelected: {{ isAddressSelected }}</p>
-                <p>> addressesCount: {{ addressStore.addresses.length }}</p>
-                <p>> stripeLoaded: {{ stripeLoaded }}</p>
-                <p>> initializing: {{ initializing }}</p>
-                <p>> stripeStep: {{ stripeStep }}</p>
-                <p>> paymentError: {{ paymentError || 'none' }}</p>
-                <p>> cartItemCount: {{ cartStore.itemCount }}</p>
-                <p>> cartTotalAmount: {{ cartStore.totalAmount }}</p>
-                <p>> Backend Status: {{ cartStore.cart ? 'CONNECTED' : 'FETCHING/DISCONNECTED' }}</p>
-                <p>> Stripe Public Key: {{ publicKeySnapshot || 'NOT_LOADED' }}</p>
-              </div>
             </div>
           </div>
         </section>
@@ -189,7 +196,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
 import { loadStripe } from '@stripe/stripe-js';
-import { PhShoppingCart, PhCheckCircle, PhTrash, PhWarning } from '@phosphor-icons/vue';
+import { PhShoppingCart, PhCheckCircle, PhTrash, PhWarning, PhQuestion, PhArrowSquareUpRight } from '@phosphor-icons/vue';
 
 const cartStore = useCartStore();
 const addressStore = useAddressStore();
@@ -204,6 +211,7 @@ const initializing = ref(false);
 const stripeStep = ref('IDLE');
 const paymentError = ref(null);
 const publicKeySnapshot = ref(null);
+const showAmazonHelp = ref(false);
 
 const isAddressSelected = computed(() => {
     if (!selectedAddressId.value) return false;
@@ -301,6 +309,12 @@ const initStripe = async () => {
         const el = document.getElementById('payment-element');
         if (el) {
             paymentElement.mount('#payment-element');
+            
+            paymentElement.on('change', (event) => {
+                // The correct property is identified as event.value.type from debug session
+                showAmazonHelp.value = event.value?.type === 'amazon_pay';
+            });
+
             stripeLoaded.value = true;
             stripeStep.value = 'SUCCESS';
         } else {
@@ -390,3 +404,25 @@ const handlePlaceOrder = async () => {
     }
 };
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.98);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>

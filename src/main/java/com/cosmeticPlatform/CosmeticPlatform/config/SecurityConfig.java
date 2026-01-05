@@ -5,13 +5,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import com.cosmeticPlatform.CosmeticPlatform.service.UserService;
 
@@ -60,6 +58,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/v3/api-docs/**").permitAll()
                                                 // .requestMatchers("/api/user/all").hasAuthority("admin")
                                                 .requestMatchers("/api/product/**").permitAll()
+                                                .requestMatchers("/api/analysis/**").permitAll()
+                                                .requestMatchers("/api/shelf/**").permitAll()
                                                 .requestMatchers("/api/history/**").permitAll()
                                                 .requestMatchers("/api/cart/**").permitAll()
                                                 .requestMatchers("/api/address/**").permitAll()
@@ -67,9 +67,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/order/**").permitAll()
                                                 .requestMatchers("/api/reviews/**").permitAll()
                                                 .requestMatchers("/api/blog/**").permitAll()
-                                                .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "CLIENT", "EXPERT") // Kullanıcı
-                                                                                                                         // yönetim
-                                                                                                                         // işlemleri
+                                                .requestMatchers("/api/user/**").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/user/add")
                                                 .hasAnyRole("ADMIN", "CLIENT")
                                                 .requestMatchers("/api/auth/forgot-password",

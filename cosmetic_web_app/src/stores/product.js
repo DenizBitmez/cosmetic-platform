@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import api from '@/services/api';
 
 export const useProductStore = defineStore('product', {
     state: () => ({
@@ -37,26 +38,50 @@ export const useProductStore = defineStore('product', {
 
             this.loading = true;
             try {
+                // 1. Fetch from External API
                 const url = `https://makeup-api.herokuapp.com/api/v1/products.json?product_type=${category}`;
-                const res = await fetch(url);
-                if (!res.ok) throw new Error('API Error');
+                let externalProducts = [];
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        const data = await res.json();
+                        externalProducts = data.filter(p =>
+                            p.price && parseFloat(p.price) > 0 &&
+                            p.image_link && p.image_link.trim().length > 10
+                        ).map(p => ({
+                            ...p,
+                            image: p.image_link.replace('http://', 'https://'),
+                            price: p.price
+                        }));
+                    }
+                } catch (err) {
+                    console.warn(`External API failed for ${category}`, err);
+                }
 
-                const data = await res.json();
-                if (!data || data.length === 0) throw new Error('No data from API');
+                // 2. Fetch from Local Backend
+                let localProducts = [];
+                try {
+                    const res = await api.get(`/product/category/${category}`);
+                    if (res.status === 200 && res.data) {
+                        localProducts = res.data.map(p => ({
+                            ...p,
+                            brand: p.brand || 'Dermacosmetic',
+                            image: p.image || 'https://via.placeholder.com/300?text=Beauty+Product'
+                        }));
+                    }
+                } catch (localErr) {
+                    console.warn(`Local API failed for ${category}`, localErr.message);
+                }
 
-                const validProducts = data.filter(p =>
-                    p.price && parseFloat(p.price) > 0 &&
-                    p.image_link && p.image_link.trim().length > 10
-                );
+                // Combine results
+                this.categoriesCache[category] = [...localProducts, ...externalProducts];
 
-                this.categoriesCache[category] = validProducts.map(p => ({
-                    ...p,
-                    image: p.image_link.replace('http://', 'https://'),
-                    price: p.price
-                }));
+                if (this.categoriesCache[category].length === 0) {
+                    throw new Error('No products found in this category');
+                }
+
             } catch (e) {
                 console.error(`Failed to fetch products for category: ${category}`, e);
-                // We keep the cache empty or handle error
                 throw e;
             } finally {
                 this.loading = false;

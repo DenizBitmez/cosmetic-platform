@@ -80,8 +80,8 @@ import ProductDetailModal from '@/components/ProductDetailModal.vue';
 
 const productStore = useProductStore();
 
-const categories = ['lipstick', 'mascara', 'foundation', 'eyeliner', 'eyeshadow', 'blush', 'bronzer', 'eyebrow', 'lip_liner', 'nail_polish'];
-const selectedCategory = ref('foundation'); // Default category
+const categories = ['serum', 'cleanser', 'toner', 'cream', 'lipstick', 'mascara', 'foundation', 'eyeliner', 'eyeshadow', 'blush', 'bronzer', 'eyebrow', 'lip_liner', 'nail_polish'];
+const selectedCategory = ref('serum'); // Default category is now Serum to show new items
 const products = computed(() => productStore.categoriesCache[selectedCategory.value] || []);
 const loading = computed(() => productStore.loading);
 const selectedProduct = ref(null);

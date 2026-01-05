@@ -92,4 +92,10 @@ public class UserService implements UserDetailsService {
 
         return userRepository.save(newUser);
     }
+
+    public User updateAllergies(Integer id, String allergies) {
+        User user = getUserById(id);
+        user.setAllergies(allergies);
+        return userRepository.save(user);
+    }
 }

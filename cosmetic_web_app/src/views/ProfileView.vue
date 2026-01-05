@@ -8,9 +8,6 @@
              <h1 class="text-3xl font-serif text-brand-dark">My Account</h1>
              <p class="text-gray-500 mt-1">Welcome back, {{ authStore.user?.username }}</p>
          </div>
-         <button @click="authStore.logout(); router.push('/login')" class="text-sm text-red-600 hover:text-red-800 font-medium underline">
-             Sign Out
-         </button>
       </div>
 
       <div class="flex flex-col lg:flex-row gap-8">
@@ -45,7 +42,30 @@
                     <div class="bg-brand-cream p-6 rounded-lg">
                         <h3 class="font-serif text-lg text-brand-dark mb-2">My Profile</h3>
                         <p class="text-sm text-gray-600 mb-1"><strong class="font-medium text-gray-900">Name:</strong> {{ authStore.user?.username }}</p>
-                        <p class="text-sm text-gray-600"><strong class="font-medium text-gray-900">Email:</strong> {{ authStore.user?.email }}</p>
+                        <p class="text-sm text-gray-600 mb-4"><strong class="font-medium text-gray-900">Email:</strong> {{ authStore.user?.email }}</p>
+                        
+                        <div class="border-t border-brand-gold/20 pt-4 mt-2">
+                           <h4 class="text-xs font-bold uppercase tracking-wider text-brand-dark mb-2 flex items-center gap-2">
+                               <PhWarning :size="14" class="text-red-500" />
+                               My Allergies
+                           </h4>
+                           <p class="text-[10px] text-gray-500 mb-3 italic">Enter ingredients you are allergic to (comma separated).</p>
+                           <div class="flex gap-2">
+                              <input 
+                                 v-model="userAllergies" 
+                                 type="text" 
+                                 placeholder="e.g. Paraben, Alcohol" 
+                                 class="flex-1 bg-white border border-brand-gold/20 rounded-lg px-3 py-1.5 text-xs focus:ring-1 focus:ring-brand-gold outline-none"
+                              >
+                              <button 
+                                 @click="saveAllergies" 
+                                 :disabled="savingAllergies"
+                                 class="bg-brand-dark text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-black disabled:opacity-50 transition-all"
+                              >
+                                 {{ savingAllergies ? '...' : 'Save' }}
+                              </button>
+                           </div>
+                        </div>
                     </div>
                      <div class="border border-gray-200 p-6 rounded-lg flex flex-col justify-center items-center text-center">
                         <template v-if="orders.length > 0">
@@ -57,7 +77,7 @@
                                 </div>
                                 <p class="text-xs text-gray-500 mb-3">{{ new Date(orders[0].orderDate).toLocaleDateString() }}</p>
                                 <p class="text-sm font-bold text-brand-dark mb-4">${{ orders[0].totalAmount }}</p>
-                                <button @click="currentTab = 'orders'" class="w-full bg-white border border-gray-300 text-gray-700 text-sm py-2 rounded-md hover:bg-gray-50 transition-colors">
+                                <button @click="currentTab = 'orders'" class="w-full bg-brand-dark border border-gray-300 text-white text-sm py-2 rounded-md hover:bg-black transition-colors">
                                     View All Orders
                                 </button>
                              </div>
@@ -162,10 +182,10 @@
             <div v-else-if="currentTab === 'wallet'" class="space-y-6">
                 <div class="flex justify-between items-center border-b pb-4">
                      <h2 class="text-xl font-bold text-gray-900">Saved Cards</h2>
-                     <button class="text-sm bg-brand-dark text-white px-3 py-1.5 rounded hover:bg-black transition-colors">Add New Card</button>
+                     <button @click="showCardModal = true" class="text-sm bg-brand-dark text-white px-3 py-1.5 rounded hover:bg-black transition-colors">Add New Card</button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div v-for="card in mockCards" :key="card.id" class="border rounded-lg p-4 bg-gradient-to-br from-gray-800 to-gray-900 text-white relative overflow-hidden">
+                    <div v-for="card in wallet" :key="card.id" class="border rounded-lg p-4 bg-gradient-to-br from-gray-800 to-gray-900 text-white relative overflow-hidden">
                         <div class="absolute top-0 right-0 p-4 opacity-20"><PhCreditCard size="64" /></div>
                         <div class="relative z-10">
                             <p class="text-xs text-gray-400 uppercase tracking-widest mb-4">{{ card.brand }}</p>
@@ -205,6 +225,102 @@
                         </div>
                     </div>
                  </div>
+            </div>
+
+            <!-- MY BEAUTY SHELF TAB -->
+            <div v-else-if="currentTab === 'shelf'" class="space-y-6">
+                <div class="flex justify-between items-center border-b pb-4">
+                     <h2 class="text-xl font-bold text-gray-900">My Cabinet</h2>
+                     <div class="flex items-center gap-3">
+                        <button @click="checkConflicts" :disabled="checkingConflicts" class="text-[10px] font-bold uppercase tracking-widest bg-brand-gold/10 text-brand-gold px-3 py-1.5 rounded-full hover:bg-brand-gold hover:text-white transition-all border border-brand-gold/20">
+                           {{ checkingConflicts ? 'Checking...' : 'Check Routine Conflicts' }}
+                        </button>
+                        <p class="text-[10px] text-brand-dark italic">Track expiry and product life</p>
+                     </div>
+                </div>
+
+                <!-- Combination Warning UI -->
+                <transition name="fade">
+                    <div v-if="conflictWarnings.length > 0" class="bg-red-50 border-l-4 border-red-500 p-5 rounded-r-xl shadow-sm mb-8">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-red-100 p-2 rounded-full text-red-600 flex-shrink-0">
+                                <PhWarning :size="24" weight="bold" />
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-sm font-bold text-red-800 uppercase tracking-wider mb-1">Routine Conflict Detected!</h3>
+                                <p class="text-xs text-red-600 mb-3 font-medium">Using these together can cause irritation or cancel out benefits:</p>
+                                <ul class="space-y-2">
+                                    <li v-for="(warn, idx) in conflictWarnings" :key="idx" class="text-[11px] text-red-700 bg-white/50 p-2 rounded border border-red-100 shadow-sm leading-relaxed">
+                                        ✨ {{ warn }}
+                                    </li>
+                                </ul>
+                            </div>
+                            <button @click="conflictWarnings = []" class="text-red-400 hover:text-red-600">
+                                <PhTrash :size="18" />
+                            </button>
+                        </div>
+                    </div>
+                </transition>
+                
+                <div v-if="shelfProducts.length === 0" class="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                     <PhClockCounterClockwise class="mx-auto h-16 w-16 text-gray-300 mb-4" />
+                     <h3 class="text-lg font-serif text-gray-800">Your Beauty Cabinet is Empty</h3>
+                     <p class="text-sm text-gray-500 max-w-xs mx-auto mt-2">Add products to track their shelf life and detect active ingredient conflicts.</p>
+                </div>
+
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div v-for="up in shelfProducts" :key="up.id" class="relative bg-white border rounded-3xl p-6 hover:shadow-xl transition-all group overflow-hidden" :class="up.expired ? 'border-red-200 bg-red-50/10' : 'border-gray-100'">
+                        <!-- Progress Background -->
+                        <div class="absolute bottom-0 left-0 h-1 bg-gray-100 w-full overflow-hidden">
+                            <div 
+                                class="h-full transition-all duration-1000" 
+                                :class="getStatusColor(calculateRemainingLife(up.openedDate, up.expiryDate))"
+                                :style="{ width: calculateRemainingLife(up.openedDate, up.expiryDate) + '%' }"
+                            ></div>
+                        </div>
+
+                        <div class="flex gap-5">
+                            <div class="w-24 h-24 bg-gray-100 rounded-2xl bg-cover bg-center shadow-sm flex-shrink-0" :style="{ backgroundImage: 'url(' + (up.imageUrl || up.product?.image || 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=200') + ')' }"></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-bold text-gray-900 text-base leading-tight truncate pr-6">{{ up.customName }}</h4>
+                                        <p class="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-1">{{ up.brand }}</p>
+                                    </div>
+                                    <button @click="removeFromShelf(up.id)" class="text-gray-300 hover:text-red-500 transition-colors p-1">
+                                        <PhTrash :size="18" />
+                                    </button>
+                                </div>
+                                
+                                <div class="mt-4 grid grid-cols-2 gap-3">
+                                    <div class="bg-gray-50 p-2 rounded-xl text-center">
+                                        <p class="text-[9px] text-gray-400 uppercase font-bold">Opened</p>
+                                        <p class="text-[11px] font-bold text-gray-700">{{ up.openedDate }}</p>
+                                    </div>
+                                    <div class="bg-gray-50 p-2 rounded-xl text-center" :class="up.expired ? 'bg-red-50 text-red-700' : ''">
+                                        <p class="text-[9px] text-gray-400 uppercase font-bold">Expires</p>
+                                        <p class="text-[11px] font-bold" :class="up.expired ? 'text-red-600' : 'text-green-600'">{{ up.expiryDate }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Remaining Days Overlay -->
+                        <div class="mt-4 flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Product Status</span>
+                            <span v-if="!up.expired" class="text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                                {{ Math.round(calculateRemainingLife(up.openedDate, up.expiryDate)) }}% Ready
+                            </span>
+                            <span v-else class="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                                EXPIRED
+                            </span>
+                        </div>
+                        
+                        <div v-if="up.expired" class="mt-3 bg-red-600 text-white p-2 rounded-xl text-center text-[11px] font-bold animate-pulse">
+                           ⚠️ REPLACE IMMEDIATELY
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- RECENTLY VIEWED TAB -->
@@ -255,52 +371,137 @@
         </div>
       </div>
 
-      <!-- Add Address Modal -->
-      <div v-if="showAddressModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showAddressModal = false"></div>
-          <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-          <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-            <div>
-              <div class="mt-3 text-center sm:mt-5">
-                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                  Add New Address
-                </h3>
-                <div class="mt-2">
-                  <form @submit.prevent="saveAddress" class="space-y-4 text-left">
-                      <div>
-                          <label class="block text-sm font-medium text-gray-700">Title (e.g., Home)</label>
-                          <input v-model="newAddress.title" type="text" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-gold focus:border-brand-gold sm:text-sm">
-                      </div>
-                      <div class="grid grid-cols-2 gap-4">
-                          <div>
-                              <label class="block text-sm font-medium text-gray-700">City</label>
-                              <input v-model="newAddress.city" type="text" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-gold focus:border-brand-gold sm:text-sm">
-                          </div>
-                           <div>
-                              <label class="block text-sm font-medium text-gray-700">District</label>
-                              <input v-model="newAddress.district" type="text" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-gold focus:border-brand-gold sm:text-sm">
-                          </div>
-                      </div>
-                      <div>
-                          <label class="block text-sm font-medium text-gray-700">Full Address</label>
-                          <textarea v-model="newAddress.fullAddress" rows="3" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-gold focus:border-brand-gold sm:text-sm"></textarea>
-                      </div>
-                      <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-brand-dark text-base font-medium text-white hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold sm:col-start-2 sm:text-sm">
-                          Save
-                        </button>
-                        <button type="button" @click="showAddressModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold sm:mt-0 sm:col-start-1 sm:text-sm">
-                          Cancel
-                        </button>
-                      </div>
-                  </form>
+      <!-- Add Address Modal (Teleport to Body for better stacking) -->
+      <teleport to="body">
+        <transition name="fade">
+            <div v-if="showAddressModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+                <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 relative animate-in fade-in zoom-in duration-300">
+                    <button @click="showAddressModal = false" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600">
+                        <PhX :size="24" />
+                    </button>
+                    
+                    <h3 class="text-2xl font-serif text-gray-900 mb-6">Add New Address</h3>
+                    
+                    <form @submit.prevent="saveAddress" class="space-y-5">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Address Title</label>
+                            <input v-model="newAddress.title" type="text" placeholder="e.g. Home, Office" required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-gold outline-none transition-all">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">City</label>
+                                <input v-model="newAddress.city" type="text" required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-gold outline-none transition-all">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">District</label>
+                                <input v-model="newAddress.district" type="text" required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-gold outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Full Address Details</label>
+                            <textarea v-model="newAddress.fullAddress" rows="4" required placeholder="Street, Apartment No, Floor..." class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-gold outline-none transition-all resize-none"></textarea>
+                        </div>
+
+                        <div class="flex gap-4 pt-4">
+                            <button type="button" @click="showAddressModal = false" class="flex-1 px-6 py-3 rounded-xl text-sm font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-all">
+                                Cancel
+                            </button>
+                            <button type="submit" class="flex-1 px-6 py-3 rounded-xl text-sm font-bold text-white bg-black hover:bg-gray-800 transition-all shadow-lg">
+                                Save Address
+                            </button>
+                        </div>
+                    </form>
                 </div>
-              </div>
             </div>
-          </div>
-        </div>
-      </div>
+        </transition>
+      </teleport>
+
+      <!-- Add Card Modal -->
+      <teleport to="body">
+        <transition name="fade">
+            <div v-if="showCardModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+                <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 relative animate-in fade-in zoom-in duration-300">
+                    <button @click="showCardModal = false" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600">
+                        <PhX :size="24" />
+                    </button>
+                    
+                    <h3 class="text-2xl font-serif text-gray-900 mb-6 text-center">Add New Card</h3>
+                    
+                    <!-- Interactive Card Preview -->
+                    <div class="perspective-1000 mb-8 mx-auto w-full max-w-[300px] h-[180px]">
+                        <div class="relative w-full h-full transition-transform duration-700 preserve-3d" :class="{ 'rotate-y-180': isCardFlipped }">
+                            <!-- Front -->
+                            <div class="absolute inset-0 backface-hidden bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 text-white shadow-xl flex flex-col justify-between overflow-hidden">
+                                <div class="absolute top-0 right-0 p-4 opacity-10"><PhCreditCard size="120" /></div>
+                                <div class="flex justify-between items-start relative z-10">
+                                    <div class="w-10 h-8 bg-brand-gold/20 rounded-md border border-brand-gold/30 flex items-center justify-center">
+                                         <div class="w-6 h-4 bg-brand-gold/40 rounded-sm"></div>
+                                    </div>
+                                    <span class="text-xs font-bold italic tracking-widest text-brand-gold/70 uppercase">{{ getCardBrand(newCard.number) }}</span>
+                                </div>
+                                <div class="text-lg font-mono tracking-[0.2em] relative z-10">{{ formatCardNumber(newCard.number) }}</div>
+                                <div class="flex justify-between items-end relative z-10">
+                                    <div class="flex flex-col">
+                                        <span class="text-[8px] uppercase text-gray-400">Card Holder</span>
+                                        <span class="text-xs font-bold truncate max-w-[140px] uppercase">{{ newCard.holder || 'YOUR NAME' }}</span>
+                                    </div>
+                                    <div class="flex flex-col items-end">
+                                        <span class="text-[8px] uppercase text-gray-400">Expires</span>
+                                        <span class="text-xs font-bold">{{ newCard.expiry || 'MM/YY' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Back -->
+                            <div class="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl text-white shadow-xl overflow-hidden py-4">
+                                <div class="bg-gray-900 h-10 w-full mb-6"></div>
+                                <div class="px-6">
+                                    <div class="text-[8px] uppercase text-gray-400 mb-1 text-right">CVV</div>
+                                    <div class="bg-white text-gray-900 h-8 rounded-md flex items-center justify-end px-3 font-mono font-bold tracking-widest text-sm italic shadow-inner">
+                                        {{ newCard.cvv || '***' }}
+                                    </div>
+                                </div>
+                                <div class="mt-4 px-6 opacity-20"><PhCreditCard size="48" /></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form @submit.prevent="saveCard" class="space-y-5">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Card Holder</label>
+                            <input v-model="newCard.holder" type="text" placeholder="NAME SURNAME" required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-gold outline-none transition-all uppercase">
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Card Number</label>
+                            <input v-model="newCard.number" type="text" placeholder="0000 0000 0000 0000" maxlength="16" required @input="handleNumberInput" class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-gold outline-none transition-all font-mono">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Expiry</label>
+                                <input v-model="newCard.expiry" type="text" placeholder="MM/YY" maxlength="5" required @input="handleExpiryInput" class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-gold outline-none transition-all">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">CVV</label>
+                                <input v-model="newCard.cvv" type="password" placeholder="***" maxlength="3" required @input="handleCvvInput" @focus="isCardFlipped = true" @blur="isCardFlipped = false" class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-gold outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 pt-4">
+                            <button type="button" @click="showCardModal = false" class="flex-1 px-6 py-3 rounded-xl text-sm font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-all">
+                                Cancel
+                            </button>
+                            <button type="submit" class="flex-1 px-6 py-3 rounded-xl text-sm font-bold text-white bg-black hover:bg-gray-800 transition-all shadow-lg">
+                                Save Card
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </transition>
+      </teleport>
     </div>
   </div>
 </template>
@@ -308,28 +509,45 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { useUiStore } from '@/stores/ui';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
 import { 
     PhUser, PhPackage, PhMapPin, PhArrowsClockwise, 
     PhCreditCard, PhTag, PhClockCounterClockwise, 
-    PhQuestion, PhRobot, PhStar, PhTrash
+    PhQuestion, PhRobot, PhStar, PhTrash, PhWarning, PhX
 } from '@phosphor-icons/vue';
 
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 const router = useRouter();
 
 const currentTab = ref('overview');
 const showAddressModal = ref(false);
+const showCardModal = ref(false);
+const isCardFlipped = ref(false);
+const userAllergies = ref(authStore.user?.allergies || '');
+const savingAllergies = ref(false);
+
+const saveAllergies = async () => {
+    savingAllergies.value = true;
+    const success = await authStore.updateAllergies(userAllergies.value);
+    if (success) {
+        uiStore.notify("Allergies updated successfully!");
+    } else {
+        uiStore.notify("Failed to update allergies.", 'error');
+    }
+    savingAllergies.value = false;
+};
 
 const navItems = [
     { id: 'overview', name: 'Overview', icon: PhUser },
+    { id: 'shelf', name: 'My Cabinet', icon: PhClockCounterClockwise },
     { id: 'orders', name: 'My Orders', icon: PhPackage },
     { id: 'addresses', name: 'My Addresses', icon: PhMapPin },
-    { id: 'buy-again', name: 'Buy Again', icon: PhArrowsClockwise },
     { id: 'wallet', name: 'Saved Cards', icon: PhCreditCard },
-    { id: 'coupons', name: 'Discount Coupons', icon: PhTag },
-    { id: 'viewed', name: 'Recently Viewed', icon: PhClockCounterClockwise },
+    { id: 'coupons', name: 'My Coupons', icon: PhTag },
+    { id: 'viewed', name: 'Recently Viewed', icon: PhArrowsClockwise },
     { id: 'help', name: 'Help & FAQ', icon: PhQuestion },
     { id: 'assistant', name: 'Assistant', icon: PhRobot },
 ];
@@ -358,6 +576,7 @@ const buyAgain = ref([]);
 const recentlyViewed = ref([]);
 const wallet = ref(mockCards);
 const coupons = ref(mockCoupons);
+const shelfProducts = ref([]);
 const faqs = ref(mockFaqs);
 
 const newAddress = reactive({
@@ -367,7 +586,141 @@ const newAddress = reactive({
     fullAddress: ''
 });
 
-// Address Functions
+const newCard = reactive({
+    number: '',
+    expiry: '',
+    cvv: '',
+    holder: ''
+});
+
+const saveCard = () => {
+    if (newCard.number.length < 16) {
+        uiStore.notify("Please enter a complete 16-digit card number.", 'error');
+        return;
+    }
+
+    // Expiry Validation
+    if (newCard.expiry.includes('/')) {
+        const parts = newCard.expiry.split('/');
+        const month = parseInt(parts[0]);
+        const yearStr = parts[1] || '';
+        const year = parseInt(yearStr);
+        
+        if (isNaN(month) || month < 1 || month > 12) {
+            uiStore.notify("Invalid month. Use 01-12.", 'warning');
+            return;
+        }
+
+        if (yearStr.length < 2) {
+            uiStore.notify("Please enter a 2-digit year.", 'warning');
+            return;
+        }
+
+        if (isNaN(year) || year < 25) {
+            uiStore.notify("Expiry year must be 2025 or later.", 'error');
+            return;
+        }
+    } else {
+        uiStore.notify("Please enter a complete expiry date (MM/YY).", 'error');
+        return;
+    }
+
+    if (newCard.cvv.length < 3) {
+        uiStore.notify("Please enter a complete CVV.", 'error');
+        return;
+    }
+    
+    // Simple simulation
+    const last4 = newCard.number.slice(-4);
+    const brand = newCard.number.startsWith('4') ? 'Visa' : 'Mastercard';
+    
+    wallet.value.push({
+        id: Date.now(),
+        brand: brand,
+        last4: last4,
+        expiry: newCard.expiry || '12/29'
+    });
+    
+    showCardModal.value = false;
+    uiStore.notify("Card successfully added to your wallet! ✨");
+    
+    // Reset
+    newCard.number = '';
+    newCard.expiry = '';
+    newCard.cvv = '';
+    newCard.holder = '';
+};
+
+const handleExpiryInput = (e) => {
+    let val = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    
+    // Month validation
+    if (val.length >= 2) {
+        let month = parseInt(val.substring(0, 2));
+        if (month > 12) {
+            uiStore.notify("Month cannot be greater than 12", 'warning');
+            val = '12' + val.substring(2);
+        } else if (month === 0 && val.length === 2) {
+             uiStore.notify("Invalid month", 'warning');
+             val = '01';
+        }
+    }
+
+    if (val.length >= 2) {
+        val = val.substring(0, 2) + '/' + val.substring(2, 4);
+    }
+    newCard.expiry = val;
+};
+
+const handleNumberInput = (e) => {
+    let val = e.target.value;
+    // Strictly numeric only
+    const numeric = val.replace(/\D/g, '');
+    
+    if (val !== numeric) {
+        uiStore.notify("Card number must contain digits only.", 'warning');
+    }
+    newCard.number = numeric;
+};
+
+const handleCvvInput = (e) => {
+    let val = e.target.value;
+    const numeric = val.replace(/\D/g, '');
+    if (val !== numeric) {
+        uiStore.notify("CVV must contain digits only.", 'warning');
+    }
+    newCard.cvv = numeric;
+};
+
+const formatCardNumber = (val) => {
+    let res = val.replace(/\s?/g, '').replace(/(\d{4})/g, '$1 ').trim();
+    return res || '•••• •••• •••• ••••';
+};
+
+const getCardBrand = (val) => {
+    if (val.startsWith('4')) return 'Visa';
+    if (val.startsWith('5')) return 'Mastercard';
+    return '';
+};
+
+const calculateRemainingLife = (openedDate, expiryDate) => {
+    if (!openedDate || !expiryDate) return 0;
+    const start = new Date(openedDate).getTime();
+    const end = new Date(expiryDate).getTime();
+    const now = new Date().getTime();
+    
+    const total = end - start;
+    const remaining = end - now;
+    
+    if (remaining <= 0) return 0;
+    return Math.max(0, Math.min(100, (remaining / total) * 100));
+};
+
+const getStatusColor = (percent) => {
+    if (percent > 50) return 'bg-green-500';
+    if (percent > 20) return 'bg-yellow-500';
+    return 'bg-red-500';
+};
 const fetchAddresses = async () => {
     if (authStore.user?.id) {
          try {
@@ -397,18 +750,90 @@ const saveAddress = async () => {
             await fetchAddresses();
         } catch (e) {
             console.error("Failed to add address", e);
-            alert("Failed to add address");
+            uiStore.notify("Failed to add address", 'error');
         }
     }
 };
 
+const conflictWarnings = ref([]);
+const checkingConflicts = ref(false);
+
+const checkConflicts = async () => {
+    if (shelfProducts.value.length < 2) {
+        uiStore.notify("Add at least 2 products to your cabinet for conflict check.", 'info');
+        return;
+    }
+    checkingConflicts.value = true;
+    conflictWarnings.value = [];
+    try {
+        const ingredients = shelfProducts.value.flatMap(p => {
+            const fromProduct = p.product?.ingredients?.map(i => i.inciName || i.inci_name) || [];
+            
+            // Fallback to parsing description if ingredients list is empty
+            const fromDesc = (p.product?.description || '')
+                .split(/[, \n.()]+/)
+                .filter(word => word.length > 3 && /^[A-Z][a-z]/.test(word)); // Rough heuristic for chemical names
+
+            const fromText = p.ingredientsText ? p.ingredientsText.split(/[, \n]+/).filter(i => i.trim().length > 0) : [];
+            
+            return [...new Set([...fromProduct, ...fromDesc, ...fromText])];
+        });
+
+        const activeIngredients = ingredients.filter(i => i && i.length > 2);
+
+        if (activeIngredients.length === 0) {
+            uiStore.notify("No ingredient signatures detected. Provide a description or use catalog products.", 'warning');
+            return;
+        }
+        
+        const res = await api.post('/analysis/check-conflicts', { ingredients: activeIngredients });
+        conflictWarnings.value = res.data;
+        if (conflictWarnings.value.length === 0) {
+            uiStore.notify("No conflicts detected! Your current routine looks safe. ✨");
+        }
+    } catch (e) {
+        console.error("Conflict check failed", e);
+        uiStore.notify("Failed to perform conflict check.", 'error');
+    } finally {
+        checkingConflicts.value = false;
+    }
+};
+
+const fetchShelf = async () => {
+    if (authStore.user?.id) {
+        try {
+            const res = await api.get(`/shelf/user/${authStore.user.id}`);
+            shelfProducts.value = res.data;
+        } catch (e) {
+            console.error("Failed to fetch shelf", e);
+        }
+    }
+};
+
+const removeFromShelf = async (id) => {
+    const ok = await uiStore.confirm("Remove Product", "Remove this product from your cabinet?");
+    if (ok) {
+        try {
+            await api.delete(`/shelf/${id}`);
+            await fetchShelf();
+            uiStore.notify("Product removed from cabinet.");
+        } catch (e) {
+             console.error("Failed to remove from shelf", e);
+             uiStore.notify("Failed to remove product.", 'error');
+        }
+    }
+}
+
 const deleteAddress = async (id) => {
-    if(confirm("Are you sure you want to delete this address?")){
+    const ok = await uiStore.confirm("Delete Address", "Are you sure you want to delete this address?");
+    if(ok){
         try {
             await api.delete(`/address/${id}`);
             await fetchAddresses();
+            uiStore.notify("Address deleted successfully.");
         } catch (e) {
             console.error("Failed to delete address", e);
+            uiStore.notify("Failed to delete address.", 'error');
         }
     }
 };
@@ -450,6 +875,31 @@ onMounted(async () => {
         } catch (e) {
             console.error("Failed to fetch recently viewed", e);
         }
+        await fetchShelf();
     }
 });
 </script>
+
+<style scoped>
+.perspective-1000 {
+    perspective: 1000px;
+}
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+.backface-hidden {
+    backface-visibility: hidden;
+}
+.rotate-y-180 {
+    transform: rotateY(180deg);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+</style>

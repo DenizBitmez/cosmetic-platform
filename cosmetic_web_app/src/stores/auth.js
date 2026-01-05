@@ -72,6 +72,18 @@ export const useAuthStore = defineStore('auth', {
                 }
             }
         },
+        async updateAllergies(allergies) {
+            if (!this.user?.id) return false;
+            try {
+                const res = await api.put(`/user/${this.user.id}/allergies`, { allergies });
+                this.user = res.data;
+                localStorage.setItem('user', JSON.stringify(this.user));
+                return true;
+            } catch (err) {
+                console.error("Failed to update allergies", err);
+                return false;
+            }
+        },
         logout() {
             this.user = null;
             this.isAuthenticated = false;

@@ -43,4 +43,7 @@ public class User {
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private java.util.List<RecentlyViewed> recentlyViewed;
+
+    @Column(columnDefinition = "TEXT")
+    private String allergies; // Comma separated list of ingredients
 }

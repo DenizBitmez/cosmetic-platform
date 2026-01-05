@@ -4,7 +4,7 @@
       <div class="fixed inset-0 bg-gray-900 bg-opacity-80 transition-opacity backdrop-blur-sm" @click="$emit('close')"></div>
 
       <div class="relative inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-        <button @click="$emit('close')" class="absolute top-4 right-4 z-10 bg-white/50 rounded-full p-2 hover:bg-white text-gray-600 transition-colors">
+        <button @click="$emit('close')" class="absolute top-4 right-4 z-10 bg-black/20 rounded-full p-2 hover:bg-black/40 text-white transition-colors">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
 
@@ -35,6 +35,9 @@
               <button @click="activeTab = 'analysis'" :class="['flex-1 pb-3 text-sm font-bold transition-colors border-b-2', activeTab === 'analysis' ? 'border-green-500 text-green-700' : 'border-transparent text-gray-400 hover:text-gray-600']">
                 🌿 Content Analysis
               </button>
+              <button @click="activeTab = 'manual'" :class="['flex-1 pb-3 text-sm font-bold transition-colors border-b-2', activeTab === 'manual' ? 'border-brand-gold text-brand-gold' : 'border-transparent text-gray-400 hover:text-gray-600']">
+                🔍 Manual Check
+              </button>
             </div>
 
             <!-- TAB CONTENT: OVERVIEW (First Tab) -->
@@ -63,6 +66,14 @@
               <div class="mb-6">
                 <h3 class="text-sm font-bold text-gray-900 mb-2">Description</h3>
                 <div class="text-xs text-gray-600 leading-relaxed space-y-2" v-html="product.description || 'No detailed description available.'"></div>
+              </div>
+
+              <div v-if="product.paoMonths" class="bg-brand-cream/30 p-4 rounded-xl border border-brand-gold/20 flex items-center gap-3">
+                 <PhClockCounterClockwise :size="24" class="text-brand-gold" />
+                 <div>
+                    <p class="text-[10px] font-bold uppercase text-brand-gold">Shelf Life (PAO)</p>
+                    <p class="text-sm font-medium text-brand-dark">{{ product.paoMonths }} Months after opening</p>
+                 </div>
               </div>
             </div>
 
@@ -104,11 +115,35 @@
 
             </div>
             
+            <!-- TAB CONTENT: MANUAL ANALYSIS -->
+            <div v-show="activeTab === 'manual'" class="overflow-y-auto pr-2 custom-scrollbar flex-1 pb-20 mt-4">
+               <div class="space-y-4">
+                  <p class="text-xs text-gray-500 italic">Paste ingredients or type them manually to check for risks.</p>
+                  <textarea v-model="manualText" rows="4" class="w-full bg-gray-50 border-gray-200 rounded-xl text-xs p-3 focus:ring-brand-gold focus:border-brand-gold" placeholder="Aqua, Glycerin, Paraben..."></textarea>
+                  <button @click="handleManualAnalysis" :disabled="analyzing" class="w-full bg-brand-dark text-white py-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-black disabled:opacity-50 transition-all shadow-lg">
+                    {{ analyzing ? 'Analyzing...' : 'Check Ingredients' }}
+                  </button>
+
+                  <div v-if="manualResults.length > 0" class="mt-6 space-y-2 border-t border-gray-100 pt-4">
+                      <div v-for="res in manualResults" :key="res.inciName" class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                          <span class="text-xs font-medium text-gray-800">{{ res.inciName }}</span>
+                          <span :class="['px-2 py-0.5 text-[10px] font-bold rounded-full', getScoreColorClass(res.score)]">
+                            {{ res.score }}
+                          </span>
+                      </div>
+                  </div>
+               </div>
+            </div>
+
             <!-- Sticky Footer (Buttons) -->
             <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 bg-white border-t border-gray-100 flex gap-3">
-              <button @click="handleAddToCart" class="flex-1 bg-black text-white text-center py-3 rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors shadow-lg flex items-center justify-center gap-2">
-                <span>Add to Cart</span>
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+              <button @click="handleAddToCart" class="flex-1 bg-black text-white text-center py-4 rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors shadow-lg flex items-center justify-center gap-2">
+                <PhShoppingCart :size="20" />
+                Add to Cart
+              </button>
+              <button @click="addToShelf" :disabled="addingToShelf" class="flex-1 bg-brand-cream text-brand-dark border border-brand-gold/30 text-center py-4 rounded-lg text-sm font-bold hover:bg-brand-gold/10 transition-colors flex items-center justify-center gap-2">
+                 <PhClockCounterClockwise :size="20" />
+                 {{ addingToShelf ? 'Adding...' : 'Add to Shelf' }}
               </button>
             </div>
 
@@ -120,10 +155,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useCartStore } from '@/stores/cart';
 import { useAuthStore } from '@/stores/auth';
+import { useUiStore } from '@/stores/ui';
 import { useRouter } from 'vue-router';
+import api from '@/services/api';
+import { PhClockCounterClockwise, PhCheckCircle, PhShoppingCart } from '@phosphor-icons/vue';
 
 const props = defineProps({
   product: {
@@ -136,9 +174,13 @@ const emit = defineEmits(['close', 'add-to-cart']);
 
 const cartStore = useCartStore();
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 const router = useRouter();
 
 const activeTab = ref('overview');
+const manualText = ref('');
+const manualResults = ref([]);
+const analyzing = ref(false);
 
 // Mock Ingredients DB for enriching external products
 const MOCK_INGREDIENTS_DB = [
@@ -238,25 +280,117 @@ const getScoreColorClass = (score) => {
     return 'bg-gray-200 text-gray-800';
 };
 
+const checkAllergies = () => {
+    if (!authStore.user?.allergies || !props.product) return true;
+    
+    const userAllergyList = authStore.user.allergies.split(',').map(a => a.trim().toLowerCase()).filter(a => a);
+    if (userAllergyList.length === 0) return true;
+
+    // Use ENRICHED ingredients from computed property for better coverage
+    const enrichedInci = ingredients.value?.map(i => i.inciName.toLowerCase()) || [];
+    const productKeywords = (props.product.description?.toLowerCase().split(/[, \n]+/) || []);
+    
+    const searchPool = [...new Set([...enrichedInci, ...productKeywords])];
+
+    const foundAllergens = userAllergyList.filter(allergen => 
+        searchPool.some(item => item.includes(allergen))
+    );
+
+    if (foundAllergens.length > 0) {
+        return uiStore.confirm(
+            "Allergy Warning! ⚠️", 
+            `This product may contain ingredients you are allergic to: ${foundAllergens.join(', ')}. Do you still want to proceed?`
+        );
+    }
+    
+    return true;
+};
+
 const handleAddToCart = async () => {
     if (!authStore.isAuthenticated) {
         router.push('/login');
         return;
     }
 
+    const ok = await checkAllergies();
+    if (!ok) return;
+
     const success = await cartStore.addToCart(props.product.id, 1, {
         id: props.product.id,
         name: props.product.name,
         category: props.product.product_type || props.product.category || 'Beauty',
         price: parseFloat(props.product.price) || 0,
+        image: props.product.image || props.product.api_featured_image,
         stock: 100
     });
     
     if (success) {
+         uiStore.notify("Product added to cart! 🛍️");
          cartStore.toggleDrawer(true);
          emit('close');
     } else {
-        alert("Failed to add to cart. Please try again.");
+        uiStore.notify("Failed to add to cart.", 'error');
+    }
+};
+
+const addingToShelf = ref(false);
+
+const addToShelf = async () => {
+    if (!authStore.isAuthenticated) {
+        uiStore.notify("Please login to use the cabinet.", 'info');
+        return;
+    }
+    
+    const ok = await checkAllergies();
+    if (!ok) return;
+
+    addingToShelf.value = true;
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const userId = Number(authStore.user.id);
+        
+        const isNumericProduct = !isNaN(props.product.id) && !isNaN(parseFloat(props.product.id)) && String(props.product.id).length < 10;
+        
+        const params = {
+            userId: userId,
+            openedDate: today,
+            // Always send these as fallback for external products
+            customName: props.product.name,
+            brand: props.product.brand || props.product.product_type || props.product.category || 'External',
+            paoMonths: props.product.paoMonths || 12,
+            imageUrl: props.product.image || props.product.api_featured_image
+        };
+
+        if (isNumericProduct) {
+            params.productId = parseInt(props.product.id);
+        }
+
+        console.log("Adding to shelf with params:", params);
+        const res = await api.post('/shelf/add', null, { params });
+        
+        if (res.status === 200 || res.status === 201) {
+            uiStore.notify("Product successfully added to your cabinet! ✨");
+            emit('close');
+        }
+    } catch (e) {
+        console.error("Failed to add to shelf", e);
+        const errorMsg = e.response?.data?.message || e.message || "Please check your connection.";
+        uiStore.notify(`Failed to add product: ${errorMsg}`, 'error');
+    } finally {
+        addingToShelf.value = false;
+    }
+};
+
+const handleManualAnalysis = async () => {
+    if (!manualText.value.trim()) return;
+    analyzing.value = true;
+    try {
+        const res = await api.post('/analysis/ingredients', { text: manualText.value });
+        manualResults.value = res.data;
+    } catch (e) {
+        console.error("Analysis failed", e);
+    } finally {
+        analyzing.value = false;
     }
 };
 
@@ -275,9 +409,6 @@ const trackViewed = async () => {
         }
     }
 };
-
-import { watch } from 'vue';
-import api from '@/services/api';
 
 watch(() => props.product, (newVal) => {
     if (newVal) {

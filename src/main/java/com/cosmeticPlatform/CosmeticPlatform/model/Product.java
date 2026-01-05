@@ -22,6 +22,8 @@ public class Product {
 
     private int stock;
 
+    private Integer paoMonths; // Period After Opening in months
+
     @Column(columnDefinition = "TEXT")
     private String image;
 

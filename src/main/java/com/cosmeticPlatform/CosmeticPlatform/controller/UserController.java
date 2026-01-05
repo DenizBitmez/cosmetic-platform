@@ -47,4 +47,12 @@ public class UserController {
     public User getUserById(@PathVariable Integer id) {
         return userService.getUserById(id);
     }
+
+    @PutMapping("/{id}/allergies")
+    @ResponseStatus(HttpStatus.OK)
+    public User updateAllergies(@PathVariable Integer id, @RequestBody java.util.Map<String, String> request) {
+        String allergies = request.get("allergies");
+        System.out.println("Updating allergies for user " + id + ": " + allergies);
+        return userService.updateAllergies(id, allergies);
+    }
 }
