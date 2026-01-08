@@ -137,6 +137,9 @@
 
             <!-- Sticky Footer (Buttons) -->
             <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 bg-white border-t border-gray-100 flex gap-3">
+              <button @click="toggleWishlist" :disabled="addingToWishlist" class="flex-shrink-0 bg-white border-2 text-center py-4 px-4 rounded-lg text-sm font-bold transition-colors shadow-lg flex items-center justify-center" :class="isInWishlist ? 'border-red-500 text-red-500 hover:bg-red-50' : 'border-gray-300 text-gray-600 hover:border-red-500 hover:text-red-500'">
+                <PhHeart :size="20" :weight="isInWishlist ? 'fill' : 'regular'" />
+              </button>
               <button @click="handleAddToCart" class="flex-1 bg-black text-white text-center py-4 rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors shadow-lg flex items-center justify-center gap-2">
                 <PhShoppingCart :size="20" />
                 Add to Cart
@@ -155,13 +158,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useCartStore } from '@/stores/cart';
 import { useAuthStore } from '@/stores/auth';
 import { useUiStore } from '@/stores/ui';
+import { useWishlistStore } from '@/stores/wishlist';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
-import { PhClockCounterClockwise, PhCheckCircle, PhShoppingCart } from '@phosphor-icons/vue';
+import { PhClockCounterClockwise, PhCheckCircle, PhShoppingCart, PhHeart } from '@phosphor-icons/vue';
 
 const props = defineProps({
   product: {
@@ -175,12 +179,15 @@ const emit = defineEmits(['close', 'add-to-cart']);
 const cartStore = useCartStore();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
+const wishlistStore = useWishlistStore();
 const router = useRouter();
 
 const activeTab = ref('overview');
 const manualText = ref('');
 const manualResults = ref([]);
 const analyzing = ref(false);
+const addingToWishlist = ref(false);
+const isInWishlist = ref(false);
 
 // Mock Ingredients DB for enriching external products
 const MOCK_INGREDIENTS_DB = [
@@ -410,9 +417,60 @@ const trackViewed = async () => {
     }
 };
 
+const toggleWishlist = async () => {
+    if (!authStore.isAuthenticated) {
+        router.push('/login');
+        return;
+    }
+
+    addingToWishlist.value = true;
+    try {
+        // Convert product ID to integer if it's a string
+        const productId = typeof props.product.id === 'string' ? parseInt(props.product.id) : props.product.id;
+        
+        // Check if it's a valid numeric product (from our database)
+        if (isNaN(productId)) {
+            uiStore.notify("External products cannot be added to wishlist yet", 'info');
+            addingToWishlist.value = false;
+            return;
+        }
+
+        const result = await wishlistStore.toggleWishlist(productId, {
+            id: productId,
+            name: props.product.name,
+            image: props.product.image || props.product.api_featured_image,
+            price: props.product.price,
+            category: props.product.product_type || props.product.category,
+            brand: props.product.brand
+        });
+
+        if (result.success) {
+            uiStore.notify(result.message);
+            isInWishlist.value = wishlistStore.isInWishlist(productId);
+        } else {
+            uiStore.notify(result.message, 'error');
+        }
+    } catch (e) {
+        console.error("Failed to toggle wishlist", e);
+        uiStore.notify("Failed to update wishlist", 'error');
+    } finally {
+        addingToWishlist.value = false;
+    }
+};
+
+const checkWishlistStatus = async () => {
+    if (authStore.isAuthenticated && props.product) {
+        const productId = typeof props.product.id === 'string' ? parseInt(props.product.id) : props.product.id;
+        if (!isNaN(productId)) {
+            isInWishlist.value = wishlistStore.isInWishlist(productId);
+        }
+    }
+};
+
 watch(() => props.product, (newVal) => {
     if (newVal) {
         trackViewed();
+        checkWishlistStatus();
     }
 }, { immediate: true });
 </script>

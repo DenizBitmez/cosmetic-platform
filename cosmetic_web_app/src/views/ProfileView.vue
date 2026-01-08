@@ -515,7 +515,7 @@ import api from '@/services/api';
 import { 
     PhUser, PhPackage, PhMapPin, PhArrowsClockwise, 
     PhCreditCard, PhTag, PhClockCounterClockwise, 
-    PhQuestion, PhRobot, PhStar, PhTrash, PhWarning, PhX
+    PhQuestion, PhRobot, PhStar, PhTrash, PhWarning, PhX, PhHeart
 } from '@phosphor-icons/vue';
 
 const authStore = useAuthStore();
@@ -542,6 +542,7 @@ const saveAllergies = async () => {
 
 const navItems = [
     { id: 'overview', name: 'Overview', icon: PhUser },
+    { id: 'wishlist', name: 'My Wishlist', icon: PhHeart },
     { id: 'shelf', name: 'My Cabinet', icon: PhClockCounterClockwise },
     { id: 'orders', name: 'My Orders', icon: PhPackage },
     { id: 'addresses', name: 'My Addresses', icon: PhMapPin },
