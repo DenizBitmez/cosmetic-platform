@@ -7,10 +7,10 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "wishlist")
+@Table(name = "price_alert")
 @Getter
 @Setter
-public class Wishlist {
+public class PriceAlert {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,15 +28,26 @@ public class Wishlist {
     @Column(length = 500)
     private String externalProductImage;
 
-    private Double externalProductPrice;
     private String externalProductBrand;
-    private String externalProductCategory;
 
     @Column(nullable = false)
-    private LocalDateTime addedDate;
+    private Double targetPrice;
+
+    private Double currentPrice;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
+    @Column(nullable = false)
+    private LocalDateTime createdDate;
+
+    private LocalDateTime notifiedDate;
 
     @PrePersist
     protected void onCreate() {
-        addedDate = LocalDateTime.now();
+        createdDate = LocalDateTime.now();
+        if (isActive == null) {
+            isActive = true;
+        }
     }
 }

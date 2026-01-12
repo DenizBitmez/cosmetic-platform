@@ -80,6 +80,11 @@ const router = createRouter({
             component: () => import('../views/BlogSubmissionView.vue')
         },
         {
+            path: '/comparison',
+            name: 'comparison',
+            component: () => import('../views/ComparisonView.vue')
+        },
+        {
             path: '/admin/blog',
             name: 'blog-admin',
             component: () => import('../views/BlogAdminView.vue')

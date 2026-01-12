@@ -159,6 +159,73 @@
                  </div>
             </div>
 
+            <!-- PRICE ALERTS TAB -->
+            <div v-else-if="currentTab === 'price-alerts'" class="space-y-6">
+                <div class="flex justify-between items-center border-b pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Price Alerts</h2>
+                    <span class="text-sm text-gray-500">{{ priceAlertStore.alertCount }} active alerts</span>
+                </div>
+                
+                <div v-if="priceAlertStore.loading" class="text-center py-10">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-dark"></div>
+                </div>
+                
+                <div v-else-if="priceAlertStore.alerts.length === 0" class="text-center py-10 text-gray-500">
+                    <PhBell :size="48" class="mx-auto mb-4 text-gray-300" />
+                    <p>No price alerts set yet.</p>
+                    <p class="text-sm mt-2">Browse products and set price alerts to get notified when prices drop!</p>
+                </div>
+                
+                <div v-else class="space-y-4">
+                    <div v-for="alert in priceAlertStore.alerts" :key="alert.id" class="border rounded-lg p-4 hover:shadow-md transition-shadow" :class="alert.isPriceDropped ? 'border-green-500 bg-green-50' : 'border-gray-200'">
+                        <div class="flex gap-4">
+                            <div class="h-24 w-24 bg-gray-200 rounded-lg bg-cover bg-center flex-shrink-0" :style="{ backgroundImage: 'url(' + (alert.productImage || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400') + ')' }"></div>
+                            
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex-1">
+                                        <h3 class="text-sm font-bold text-gray-900 line-clamp-2">{{ alert.productName || 'Product' }}</h3>
+                                        <p class="text-xs text-gray-500 mt-1">Created {{ new Date(alert.createdDate).toLocaleDateString() }}</p>
+                                    </div>
+                                    <button @click="deleteAlert(alert.id)" class="text-gray-400 hover:text-red-500 transition-colors p-1">
+                                        <PhTrash :size="20" />
+                                    </button>
+                                </div>
+                                
+                                <div class="grid grid-cols-3 gap-3 mt-3">
+                                    <div>
+                                        <p class="text-xs text-gray-500">Target Price</p>
+                                        <p class="text-sm font-bold text-brand-gold">${{ alert.targetPrice?.toFixed(2) }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Current Price</p>
+                                        <p class="text-sm font-bold" :class="alert.isPriceDropped ? 'text-green-600' : 'text-gray-900'">${{ alert.currentPrice?.toFixed(2) }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Status</p>
+                                        <span v-if="alert.isPriceDropped" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <PhCheckCircle :size="14" class="mr-1" weight="fill" />
+                                            Price Dropped!
+                                        </span>
+                                        <span v-else-if="alert.isActive" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <PhClock :size="14" class="mr-1" />
+                                            Watching
+                                        </span>
+                                        <span v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            Inactive
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div v-if="alert.isPriceDropped" class="mt-3 p-2 bg-green-100 border border-green-200 rounded">
+                                    <p class="text-xs text-green-700 font-medium">🎉 Great news! The price dropped to your target price!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- BUY AGAIN TAB -->
             <div v-else-if="currentTab === 'buy-again'" class="space-y-6">
                 <h2 class="text-xl font-bold text-gray-900 border-b pb-4">Buy Again</h2>
@@ -201,6 +268,42 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WISHLIST TAB -->
+            <div v-else-if="currentTab === 'wishlist'" class="space-y-6">
+                <div class="flex justify-between items-center border-b pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">My Wishlist</h2>
+                    <span class="text-sm text-gray-500">{{ wishlistStore.itemCount }} items</span>
+                </div>
+                
+                <div v-if="wishlistStore.loading" class="text-center py-10">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-dark"></div>
+                </div>
+                
+                <div v-else-if="wishlistStore.wishlistItems.length === 0" class="text-center py-10 text-gray-500">
+                    <PhHeart :size="48" class="mx-auto mb-4 text-gray-300" />
+                    <p>Your wishlist is empty.</p>
+                    <p class="text-sm mt-2">Start adding products you love!</p>
+                </div>
+                
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="item in wishlistStore.wishlistItems" :key="item.id" class="border rounded-lg p-4 hover:shadow-md transition-shadow relative">
+                        <button @click="wishlistStore.removeFromWishlist(item.productId)" class="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 transition-colors">
+                            <PhX :size="20" />
+                        </button>
+                        
+                        <div class="h-48 w-full bg-gray-200 rounded-lg bg-cover bg-center mb-3" :style="{ backgroundImage: 'url(' + (item.productImage || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400') + ')' }"></div>
+                        
+                        <h3 class="font-bold text-sm text-gray-900 line-clamp-2 mb-1">{{ item.productName || 'Product' }}</h3>
+                        <p class="text-xs text-gray-500 mb-2">{{ item.productBrand || item.productCategory }}</p>
+                        <p class="text-lg font-bold text-brand-gold">${{ item.productPrice?.toFixed(2) }}</p>
+                        
+                        <button class="mt-3 w-full bg-brand-dark text-white py-2 rounded-lg text-sm font-medium hover:bg-black transition-colors">
+                            View Details
+                        </button>
                     </div>
                 </div>
             </div>
@@ -509,16 +612,21 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { useWishlistStore } from '@/stores/wishlist';
+import { usePriceAlertStore } from '@/stores/priceAlert';
 import { useUiStore } from '@/stores/ui';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
 import { 
     PhUser, PhPackage, PhMapPin, PhArrowsClockwise, 
     PhCreditCard, PhTag, PhClockCounterClockwise, 
-    PhQuestion, PhRobot, PhStar, PhTrash, PhWarning, PhX, PhHeart
+    PhQuestion, PhRobot, PhStar, PhTrash, PhWarning, PhX, PhHeart,
+    PhBell, PhClock, PhCheckCircle
 } from '@phosphor-icons/vue';
 
 const authStore = useAuthStore();
+const wishlistStore = useWishlistStore();
+const priceAlertStore = usePriceAlertStore();
 const uiStore = useUiStore();
 const router = useRouter();
 
@@ -543,6 +651,7 @@ const saveAllergies = async () => {
 const navItems = [
     { id: 'overview', name: 'Overview', icon: PhUser },
     { id: 'wishlist', name: 'My Wishlist', icon: PhHeart },
+    { id: 'price-alerts', name: 'Price Alerts', icon: PhBell },
     { id: 'shelf', name: 'My Cabinet', icon: PhClockCounterClockwise },
     { id: 'orders', name: 'My Orders', icon: PhPackage },
     { id: 'addresses', name: 'My Addresses', icon: PhMapPin },
@@ -825,6 +934,18 @@ const removeFromShelf = async (id) => {
     }
 }
 
+const deleteAlert = async (alertId) => {
+    const ok = await uiStore.confirm("Delete Price Alert", "Are you sure you want to delete this price alert?");
+    if (ok) {
+        const result = await priceAlertStore.deleteAlert(alertId);
+        if (result.success) {
+            uiStore.notify(result.message);
+        } else {
+            uiStore.notify(result.message, 'error');
+        }
+    }
+};
+
 const deleteAddress = async (id) => {
     const ok = await uiStore.confirm("Delete Address", "Are you sure you want to delete this address?");
     if(ok){
@@ -877,6 +998,8 @@ onMounted(async () => {
             console.error("Failed to fetch recently viewed", e);
         }
         await fetchShelf();
+        await wishlistStore.fetchWishlist();
+        await priceAlertStore.fetchAlerts();
     }
 });
 </script>

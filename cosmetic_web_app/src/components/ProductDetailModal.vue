@@ -135,10 +135,19 @@
                </div>
             </div>
 
+            <!-- Price Alert Modal -->
+            <PriceAlertModal :show="showPriceAlertModal" :product="product" @close="showPriceAlertModal = false" @created="onPriceAlertCreated" />
+
             <!-- Sticky Footer (Buttons) -->
             <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 bg-white border-t border-gray-100 flex gap-3">
               <button @click="toggleWishlist" :disabled="addingToWishlist" class="flex-shrink-0 bg-white border-2 text-center py-4 px-4 rounded-lg text-sm font-bold transition-colors shadow-lg flex items-center justify-center" :class="isInWishlist ? 'border-red-500 text-red-500 hover:bg-red-50' : 'border-gray-300 text-gray-600 hover:border-red-500 hover:text-red-500'">
                 <PhHeart :size="20" :weight="isInWishlist ? 'fill' : 'regular'" />
+              </button>
+              <button @click="toggleComparison" class="flex-shrink-0 bg-white border-2 text-center py-4 px-4 rounded-lg text-sm font-bold transition-colors shadow-lg flex items-center justify-center" :class="isInComparison ? 'border-blue-500 text-blue-500 hover:bg-blue-50' : 'border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-500'">
+                <PhScales :size="20" :weight="isInComparison ? 'fill' : 'regular'" />
+              </button>
+              <button @click="openPriceAlertModal" class="flex-shrink-0 bg-white border-2 border-gray-300 text-gray-600 text-center py-4 px-4 rounded-lg text-sm font-bold hover:border-yellow-500 hover:text-yellow-500 transition-colors shadow-lg flex items-center justify-center">
+                <PhBell :size="20" />
               </button>
               <button @click="handleAddToCart" class="flex-1 bg-black text-white text-center py-4 rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors shadow-lg flex items-center justify-center gap-2">
                 <PhShoppingCart :size="20" />
@@ -163,9 +172,11 @@ import { useCartStore } from '@/stores/cart';
 import { useAuthStore } from '@/stores/auth';
 import { useUiStore } from '@/stores/ui';
 import { useWishlistStore } from '@/stores/wishlist';
+import { useComparisonStore } from '@/stores/comparison';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
-import { PhClockCounterClockwise, PhCheckCircle, PhShoppingCart, PhHeart } from '@phosphor-icons/vue';
+import { PhClockCounterClockwise, PhCheckCircle, PhShoppingCart, PhHeart, PhScales, PhBell } from '@phosphor-icons/vue';
+import PriceAlertModal from './PriceAlertModal.vue';
 
 const props = defineProps({
   product: {
@@ -180,6 +191,7 @@ const cartStore = useCartStore();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 const wishlistStore = useWishlistStore();
+const comparisonStore = useComparisonStore();
 const router = useRouter();
 
 const activeTab = ref('overview');
@@ -188,6 +200,8 @@ const manualResults = ref([]);
 const analyzing = ref(false);
 const addingToWishlist = ref(false);
 const isInWishlist = ref(false);
+const isInComparison = ref(false);
+const showPriceAlertModal = ref(false);
 
 // Mock Ingredients DB for enriching external products
 const MOCK_INGREDIENTS_DB = [
@@ -430,7 +444,7 @@ const toggleWishlist = async () => {
         
         // Check if it's a valid numeric product (from our database)
         if (isNaN(productId)) {
-            uiStore.notify("External products cannot be added to wishlist yet", 'info');
+            uiStore.notify("Invalid product ID", 'error');
             addingToWishlist.value = false;
             return;
         }
@@ -467,10 +481,63 @@ const checkWishlistStatus = async () => {
     }
 };
 
+const toggleComparison = () => {
+    const productId = typeof props.product.id === 'string' ? parseInt(props.product.id) : props.product.id;
+    
+    // Check if it's a valid numeric product
+    if (isNaN(productId)) {
+        uiStore.notify("External products cannot be added to comparison yet", 'info');
+        return;
+    }
+
+    // Check if it's an external product
+    if (props.product.api_featured_image || props.product.product_link) {
+        uiStore.notify("External API products cannot be compared", 'info');
+        return;
+    }
+
+    const result = comparisonStore.toggleComparison({
+        id: productId,
+        name: props.product.name,
+        image: props.product.image || props.product.api_featured_image,
+        price: props.product.price,
+        category: props.product.product_type || props.product.category,
+        brand: props.product.brand,
+        rating: props.product.rating,
+        stock: props.product.stock,
+        ingredients: props.product.ingredients,
+        description: props.product.description,
+        paoMonths: props.product.paoMonths
+    });
+
+    if (result.success) {
+        isInComparison.value = comparisonStore.isInComparison(productId);
+    }
+};
+
+const checkComparisonStatus = () => {
+    if (props.product) {
+        const productId = typeof props.product.id === 'string' ? parseInt(props.product.id) : props.product.id;
+        if (!isNaN(productId)) {
+            isInComparison.value = comparisonStore.isInComparison(productId);
+        }
+    }
+};
+
+const openPriceAlertModal = () => {
+    showPriceAlertModal.value = true;
+};
+
+const onPriceAlertCreated = () => {
+    // Refresh or update UI if needed
+    console.log('Price alert created successfully');
+};
+
 watch(() => props.product, (newVal) => {
     if (newVal) {
         trackViewed();
         checkWishlistStatus();
+        checkComparisonStatus();
     }
 }, { immediate: true });
 </script>

@@ -68,6 +68,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/reviews/**").permitAll()
                                                 .requestMatchers("/api/blog/**").permitAll()
                                                 .requestMatchers("/api/user/**").permitAll()
+                                                .requestMatchers("/api/wishlist/**").permitAll()
+                                                .requestMatchers("/api/price-alert/**").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/user/add")
                                                 .hasAnyRole("ADMIN", "CLIENT")
                                                 .requestMatchers("/api/auth/forgot-password",

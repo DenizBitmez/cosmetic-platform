@@ -46,12 +46,21 @@ export const useWishlistStore = defineStore('wishlist', {
 
             this.loading = true;
             try {
-                const response = await api.post('/wishlist/add', null, {
-                    params: {
-                        userId: auth.user.id,
-                        productId: productId
-                    }
-                });
+                const params = {
+                    userId: auth.user.id,
+                    productId: productId
+                };
+
+                // If product data is provided, include external product fields
+                if (productData) {
+                    params.externalName = productData.name;
+                    params.externalImage = productData.image;
+                    params.externalPrice = productData.price;
+                    params.externalBrand = productData.brand;
+                    params.externalCategory = productData.category;
+                }
+
+                const response = await api.post('/wishlist/add', null, { params });
 
                 // Refresh wishlist
                 await this.fetchWishlist();
@@ -59,7 +68,13 @@ export const useWishlistStore = defineStore('wishlist', {
                 return { success: true, message: 'Added to wishlist!' };
             } catch (err) {
                 console.error('Failed to add to wishlist:', err);
-                const message = err.response?.data?.message || 'Failed to add to wishlist';
+                console.error('Error details:', {
+                    message: err.message,
+                    status: err.response?.status,
+                    data: err.response?.data,
+                    config: err.config
+                });
+                const message = err.response?.data?.message || err.message || 'Failed to add to wishlist';
                 return { success: false, message };
             } finally {
                 this.loading = false;

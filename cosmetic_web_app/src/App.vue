@@ -7,6 +7,7 @@ import NavBar from '@/components/NavBar.vue';
 import CartDrawer from '@/components/CartDrawer.vue';
 import Footer from '@/components/Footer.vue';
 import AppToast from '@/components/AppToast.vue';
+import FloatingCompareButton from '@/components/FloatingCompareButton.vue';
 
 const route = useRoute();
 const authStore = useAuthStore();
@@ -29,6 +30,7 @@ onMounted(async () => {
     <NavBar v-if="route.name !== 'login'" />
     <CartDrawer />
     <AppToast />
+    <FloatingCompareButton />
     <main class="flex-grow">
         <RouterView />
     </main>

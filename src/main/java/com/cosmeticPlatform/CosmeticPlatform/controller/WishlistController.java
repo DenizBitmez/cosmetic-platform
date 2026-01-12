@@ -41,23 +41,39 @@ public class WishlistController {
     @PostMapping("/add")
     public ResponseEntity<?> addToWishlist(
             @RequestParam Integer userId,
-            @RequestParam Integer productId) {
+            @RequestParam Integer productId,
+            @RequestParam(required = false) String externalName,
+            @RequestParam(required = false) String externalImage,
+            @RequestParam(required = false) Double externalPrice,
+            @RequestParam(required = false) String externalBrand,
+            @RequestParam(required = false) String externalCategory) {
+        System.out.println("=== WISHLIST ADD REQUEST ===");
+        System.out.println("User ID: " + userId + " (type: " + userId.getClass().getSimpleName() + ")");
+        System.out.println("Product ID: " + productId + " (type: " + productId.getClass().getSimpleName() + ")");
+        System.out.println("External product: " + (externalName != null ? externalName : "none"));
+
         try {
-            Wishlist wishlist = wishlistService.addToWishlist(userId, productId);
+            Wishlist wishlist = wishlistService.addToWishlist(userId, productId, externalName,
+                    externalImage, externalPrice, externalBrand, externalCategory);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Product added to wishlist");
             response.put("wishlistId", wishlist.getId());
+            System.out.println("✅ Successfully added to wishlist. ID: " + wishlist.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
+            System.err.println("❌ RuntimeException: " + e.getMessage());
+            e.printStackTrace();
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         } catch (Exception e) {
+            System.err.println("❌ Exception: " + e.getMessage());
+            e.printStackTrace();
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "Failed to add to wishlist");
+            response.put("message", "Failed to add to wishlist: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

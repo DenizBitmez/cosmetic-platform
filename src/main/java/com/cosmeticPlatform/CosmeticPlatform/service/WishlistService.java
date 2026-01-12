@@ -24,26 +24,34 @@ public class WishlistService {
     private ProductRepository productRepository;
 
     public List<WishlistResponseDTO> getUserWishlist(Integer userId) {
-        List<Wishlist> wishlistItems = wishlistRepository.findByUserIdOrderByAddedDateDesc(userId);
+        List<Wishlist> wishlists = wishlistRepository.findByUserIdOrderByAddedDateDesc(userId);
 
-        return wishlistItems.stream().map(item -> {
+        return wishlists.stream().map(wishlist -> {
             WishlistResponseDTO dto = new WishlistResponseDTO();
-            dto.setId(item.getId());
-            dto.setUserId(item.getUserId());
-            dto.setProductId(item.getProductId());
-            dto.setAddedDate(item.getAddedDate());
+            dto.setId(wishlist.getId());
+            dto.setProductId(wishlist.getProductId());
+            dto.setAddedDate(wishlist.getAddedDate());
+            dto.setUserId(wishlist.getUserId()); // Added this line to ensure userId is set
 
-            // Fetch product details
-            Optional<Product> productOpt = productRepository.findById(item.getProductId());
-            if (productOpt.isPresent()) {
-                Product product = productOpt.get();
-                dto.setProductName(product.getName());
-                dto.setProductImage(product.getImage());
-                dto.setProductPrice(product.getPrice());
-                dto.setProductCategory(product.getCategory());
-                dto.setProductStock(product.getStock());
-                // Brand can be extracted from product if available
-                dto.setProductBrand(product.getCategory()); // Placeholder
+            // Use external product data if available, otherwise fetch from database
+            if (wishlist.getExternalProductName() != null) {
+                dto.setProductName(wishlist.getExternalProductName());
+                dto.setProductImage(wishlist.getExternalProductImage());
+                dto.setProductPrice(wishlist.getExternalProductPrice());
+                dto.setProductBrand(wishlist.getExternalProductBrand());
+                dto.setProductCategory(wishlist.getExternalProductCategory());
+                dto.setProductStock(null); // External products don't have stock in this context
+            } else if (wishlist.getProductId() != null) {
+                Optional<Product> productOpt = productRepository.findById(wishlist.getProductId());
+                if (productOpt.isPresent()) {
+                    Product product = productOpt.get();
+                    dto.setProductName(product.getName());
+                    dto.setProductImage(product.getImage());
+                    dto.setProductPrice(product.getPrice());
+                    dto.setProductBrand(product.getCategory()); // Product doesn't have brand field
+                    dto.setProductCategory(product.getCategory());
+                    dto.setProductStock(product.getStock());
+                }
             }
 
             return dto;
@@ -51,22 +59,48 @@ public class WishlistService {
     }
 
     @Transactional
-    public Wishlist addToWishlist(Integer userId, Integer productId) {
+    public Wishlist addToWishlist(Integer userId, Integer productId, String externalName, String externalImage,
+            Double externalPrice, String externalBrand, String externalCategory) {
+        System.out.println("WishlistService.addToWishlist called with userId=" + userId + ", productId=" + productId);
+        System.out.println("External product data: name=" + externalName + ", price=" + externalPrice);
+
         // Check if already exists
-        if (wishlistRepository.existsByUserIdAndProductId(userId, productId)) {
+        boolean exists = wishlistRepository.existsByUserIdAndProductId(userId, productId);
+        System.out.println("Already in wishlist: " + exists);
+        if (exists) {
             throw new RuntimeException("Product already in wishlist");
         }
 
-        // Verify product exists
-        if (!productRepository.existsById(productId)) {
-            throw new RuntimeException("Product not found");
+        // For database products, verify they exist
+        // For external products (with external data), skip this check
+        boolean isExternalProduct = externalName != null && !externalName.isEmpty();
+        if (!isExternalProduct) {
+            boolean productExists = productRepository.existsById(productId);
+            System.out.println("Product exists in database: " + productExists);
+            if (!productExists) {
+                throw new RuntimeException("Product not found");
+            }
         }
 
         Wishlist wishlist = new Wishlist();
         wishlist.setUserId(userId);
         wishlist.setProductId(productId);
 
-        return wishlistRepository.save(wishlist);
+        // Set external product data if provided
+        if (isExternalProduct) {
+            wishlist.setExternalProductName(externalName);
+            wishlist.setExternalProductImage(externalImage);
+            wishlist.setExternalProductPrice(externalPrice);
+            wishlist.setExternalProductBrand(externalBrand);
+            wishlist.setExternalProductCategory(externalCategory);
+            System.out.println("Saving external product to wishlist");
+        }
+
+        System.out.println("Saving wishlist to database...");
+        Wishlist saved = wishlistRepository.save(wishlist);
+        System.out.println("Wishlist saved successfully with ID: " + saved.getId());
+
+        return saved;
     }
 
     @Transactional
