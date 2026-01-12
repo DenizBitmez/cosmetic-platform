@@ -46,4 +46,14 @@ public class User {
 
     @Column(columnDefinition = "TEXT")
     private String allergies; // Comma separated list of ingredients
+
+    // Skin Profile Fields for Personalization
+    private String skinType; // OILY, DRY, COMBINATION, NORMAL, SENSITIVE
+
+    @Column(columnDefinition = "TEXT")
+    private String skinConcerns; // JSON array: ["acne", "wrinkles", "dark_spots"]
+
+    private String skinTone; // FAIR, LIGHT, MEDIUM, TAN, DEEP
+
+    private Integer age;
 }

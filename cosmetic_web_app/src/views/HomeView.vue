@@ -10,12 +10,19 @@
                 <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl font-serif mb-6">
                     Redefine Your Glow
                 </h1>
-                <p class="mt-4 text-xl text-gray-100 max-w-lg mb-8">
+                <p class="text-xl text-gray-100 mb-8 max-w-2xl mx-auto">
                     Curated collection of premium skincare and cosmetics for the modern individual.
                 </p>
-                <a href="#products" class="inline-block bg-brand-gold border border-transparent py-3 px-8 text-base font-medium text-white hover:bg-white hover:text-brand-gold transition-all duration-300 uppercase tracking-widest">
-                    Shop Collection
-                </a>
+                
+                <!-- Skin Quiz CTA -->
+                <div class="mb-8">
+                    <router-link to="/skin-quiz" class="inline-flex items-center gap-2 bg-brand-gold text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-brand-gold/90 transition-all shadow-lg hover:shadow-xl">
+                        <PhSparkle :size="24" weight="fill" />
+                        Take Our Skin Quiz
+                        <PhArrowRight :size="20" weight="bold" />
+                    </router-link>
+                    <p class="text-sm text-gray-100 mt-3">Get personalized product recommendations in 2 minutes</p>
+                </div>
              </div>
         </div>
     </div>
@@ -38,6 +45,29 @@
                 <h3 class="text-lg font-bold uppercase tracking-wide mb-2">Fast Delivery</h3>
                 <p class="text-gray-500 font-light">Luxury delivered to your doorstep in days.</p>
             </div>
+        </div>
+    </div>
+
+    <!-- Recommended for You Section -->
+    <div v-if="recommendationStore.hasCompletedQuiz && recommendations.length > 0" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+        <div class="flex items-center justify-between mb-12">
+            <div>
+                <h2 class="text-3xl font-serif text-brand-dark mb-2">Recommended for You</h2>
+                <p class="text-gray-500 font-light italic">Personalized picks based on your skin profile</p>
+            </div>
+            <router-link to="/skin-quiz" class="text-xs font-bold uppercase tracking-widest text-brand-gold hover:text-brand-dark transition-colors border-b border-brand-gold">
+                Retake Quiz
+            </router-link>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-y-12 gap-x-8">
+            <ProductCard 
+                v-for="product in recommendations" 
+                :key="product.id" 
+                :product="product" 
+                @click="selectedProduct = product"
+                class="transition-opacity duration-300"
+            />
         </div>
     </div>
 
@@ -126,14 +156,19 @@ import { ref, onMounted, computed } from 'vue';
 import api from '@/services/api';
 import ProductCard from '@/components/ProductCard.vue';
 import ProductDetailModal from '@/components/ProductDetailModal.vue';
-import { PhSparkle, PhPlant, PhTruck } from '@phosphor-icons/vue';
+import { PhSparkle, PhPlant, PhTruck, PhArrowRight } from '@phosphor-icons/vue';
 import { useProductStore } from '@/stores/product';
+import { useRecommendationStore } from '@/stores/recommendation';
+import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const productStore = useProductStore();
+const recommendationStore = useRecommendationStore();
+const authStore = useAuthStore();
 
 const products = computed(() => productStore.latestArrivals);
+const recommendations = computed(() => recommendationStore.recommendations);
 const blogPosts = ref([]);
 const loading = computed(() => productStore.loading);
 const error = computed(() => productStore.error);
@@ -153,14 +188,21 @@ const filteredProducts = computed(() => {
 });
 
 const handleRemove = (productToRemove) => {
-    // Note: If we want to support local removal with cache, 
-    // we should probably have a local filtered state or update the store.
-    // For now, keeping it simple as the user asked for caching.
     productStore.latestArrivals = productStore.latestArrivals.filter(p => p.id !== productToRemove.id);
 };
 
 onMounted(async () => {
+    console.log('HomeView mounted, auth user:', authStore.user);
     await productStore.fetchLatestArrivals();
+    
+    // Only fetch recommendations if user is logged in
+    if (authStore.user && authStore.user.id) {
+        await recommendationStore.fetchSkinProfile();
+        if (recommendationStore.hasCompletedQuiz) {
+            await recommendationStore.fetchRecommendations(6);
+        }
+    }
+    
     await fetchBlogPosts();
 });
 </script>

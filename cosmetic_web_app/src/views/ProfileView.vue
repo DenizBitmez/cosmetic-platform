@@ -44,7 +44,19 @@
                         <p class="text-sm text-gray-600 mb-1"><strong class="font-medium text-gray-900">Name:</strong> {{ authStore.user?.username }}</p>
                         <p class="text-sm text-gray-600 mb-4"><strong class="font-medium text-gray-900">Email:</strong> {{ authStore.user?.email }}</p>
                         
-                        <div class="border-t border-brand-gold/20 pt-4 mt-2">
+                        <div v-if="recommendationStore.hasCompletedQuiz" class="border-t border-brand-gold/20 pt-4 mt-2">
+                             <h4 class="text-xs font-bold uppercase tracking-wider text-brand-dark mb-2 flex items-center gap-2">
+                                <PhSparkle :size="14" class="text-brand-gold" weight="fill" />
+                                Skin Profile
+                            </h4>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div><span class="text-gray-500">Type:</span> <span class="font-medium capitalize">{{ recommendationStore.skinProfile.skinType?.toLowerCase() }}</span></div>
+                                <div><span class="text-gray-500">Tone:</span> <span class="font-medium capitalize">{{ recommendationStore.skinProfile.skinTone?.toLowerCase() }}</span></div>
+                            </div>
+                            <button @click="currentTab = 'skin-profile'" class="text-xs text-brand-gold font-bold mt-2 hover:underline">View Full Profile</button>
+                        </div>
+                        
+                        <div class="border-t border-brand-gold/20 pt-4 mt-4">
                            <h4 class="text-xs font-bold uppercase tracking-wider text-brand-dark mb-2 flex items-center gap-2">
                                <PhWarning :size="14" class="text-red-500" />
                                My Allergies
@@ -89,6 +101,101 @@
                         </template>
                     </div>
                 </div>
+            </div>
+
+            <!-- SKIN PROFILE TAB -->
+            <div v-else-if="currentTab === 'skin-profile'" class="space-y-8">
+                <div class="flex justify-between items-center border-b pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">My Skin Profile</h2>
+                    <router-link to="/skin-quiz" class="text-sm font-medium text-brand-gold hover:text-brand-dark transition-colors">
+                        {{ recommendationStore.hasCompletedQuiz ? 'Retake Quiz' : 'Take Skin Quiz' }}
+                    </router-link>
+                </div>
+
+                <div v-if="recommendationStore.hasCompletedQuiz" class="grid grid-cols-1 gap-6">
+                    <div class="bg-gradient-to-br from-brand-cream/30 to-brand-cream/10 p-8 rounded-2xl border border-brand-cream">
+                         <div class="flex items-center gap-4 mb-6">
+                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm text-brand-gold">
+                                <PhSparkle :size="32" weight="fill" />
+                            </div>
+                            <div>
+                                <h3 class="font-serif text-2xl text-brand-dark">Your Unique Profile</h3>
+                                <p class="text-gray-500 text-sm">Based on your analysis</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                            <div>
+                                <span class="uppercase tracking-widest text-xs font-bold text-gray-400 block mb-1">Skin Type</span>
+                                <span class="text-xl font-medium text-gray-900 capitalize">{{ recommendationStore.skinProfile.skinType?.toLowerCase() }}</span>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    {{ 
+                                        recommendationStore.skinProfile.skinType === 'OILY' ? 'Focus on oil control and pore minimizing.' :
+                                        recommendationStore.skinProfile.skinType === 'DRY' ? 'Focus on hydration and barrier repair.' :
+                                        recommendationStore.skinProfile.skinType === 'COMBINATION' ? 'Balance is key - hydrate dry areas, control oil in T-zone.' :
+                                        recommendationStore.skinProfile.skinType === 'SENSITIVE' ? 'Stick to gentle, soothing ingredients.' :
+                                        'You have balanced skin! Maintain it with a consistent routine.'
+                                    }}
+                                </p>
+                            </div>
+                             <div>
+                                <span class="uppercase tracking-widest text-xs font-bold text-gray-400 block mb-1">Skin Tone</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-4 h-4 rounded-full border border-gray-200" :style="{ backgroundColor: 
+                                        recommendationStore.skinProfile.skinTone === 'FAIR' ? '#FFDFC4' :
+                                        recommendationStore.skinProfile.skinTone === 'LIGHT' ? '#F0C8A0' :
+                                        recommendationStore.skinProfile.skinTone === 'MEDIUM' ? '#D4A574' :
+                                        recommendationStore.skinProfile.skinTone === 'TAN' ? '#B68655' :
+                                        recommendationStore.skinProfile.skinTone === 'DEEP' ? '#8D5524' : '#eee'
+                                    }"></span>
+                                    <span class="text-xl font-medium text-gray-900 capitalize">{{ recommendationStore.skinProfile.skinTone?.toLowerCase() }}</span>
+                                </div>
+                            </div>
+                             <div>
+                                <span class="uppercase tracking-widest text-xs font-bold text-gray-400 block mb-1">Primary Concerns</span>
+                                <div class="flex flex-wrap gap-2 mt-1">
+                                    <span v-for="concern in JSON.parse(recommendationStore.skinProfile.skinConcerns || '[]')" :key="concern" 
+                                          class="inline-flex px-3 py-1 rounded-full bg-white border border-gray-200 text-xs font-medium text-gray-700 capitalize shadow-sm">
+                                        {{ concern.replace('_', ' ') }}
+                                    </span>
+                                </div>
+                            </div>
+                             <div>
+                                <span class="uppercase tracking-widest text-xs font-bold text-gray-400 block mb-1">Age Range</span>
+                                <span class="text-xl font-medium text-gray-900">
+                                     {{ 
+                                        recommendationStore.skinProfile.age === 20 ? 'Under 18' :
+                                        recommendationStore.skinProfile.age === 21 ? '18-24' :
+                                        recommendationStore.skinProfile.age === 29 ? '25-34' :
+                                        recommendationStore.skinProfile.age === 39 ? '35-44' :
+                                        recommendationStore.skinProfile.age === 49 ? '45-54' : '55+'
+                                    }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else class="text-center py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                    <div class="w-16 h-16 bg-brand-cream rounded-full flex items-center justify-center mx-auto mb-4 text-brand-gold">
+                        <PhSparkle :size="32" weight="fill" />
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Discover Your Skin Profile</h3>
+                    <p class="text-gray-500 mb-6 max-w-md mx-auto">Take our 2-minute quiz to analyze your skin type and get personalized product recommendations tailored just for you.</p>
+                    <router-link to="/skin-quiz" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-brand-dark hover:bg-black transition-colors">
+                        Take Skin Quiz
+                    </router-link>
+                </div>
+                </div>
+
+
+            <!-- ROUTINE TAB -->
+            <div v-else-if="currentTab === 'routine'" class="space-y-8">
+                 <div class="flex justify-between items-center border-b pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">My Skincare Routine</h2>
+                </div>
+
+                <RoutineManager />
             </div>
 
             <!-- ORDERS TAB -->
@@ -616,17 +723,21 @@ import { useWishlistStore } from '@/stores/wishlist';
 import { usePriceAlertStore } from '@/stores/priceAlert';
 import { useUiStore } from '@/stores/ui';
 import { useRouter } from 'vue-router';
+import RoutineManager from '@/components/RoutineManager.vue';
 import api from '@/services/api';
 import { 
     PhUser, PhPackage, PhMapPin, PhArrowsClockwise, 
     PhCreditCard, PhTag, PhClockCounterClockwise, 
     PhQuestion, PhRobot, PhStar, PhTrash, PhWarning, PhX, PhHeart,
-    PhBell, PhClock, PhCheckCircle
+    PhBell, PhClock, PhCheckCircle, PhSparkle, PhCalendar,
+    PhSun, PhMoon
 } from '@phosphor-icons/vue';
+import { useRecommendationStore } from '@/stores/recommendation';
 
 const authStore = useAuthStore();
 const wishlistStore = useWishlistStore();
 const priceAlertStore = usePriceAlertStore();
+const recommendationStore = useRecommendationStore();
 const uiStore = useUiStore();
 const router = useRouter();
 
@@ -648,8 +759,16 @@ const saveAllergies = async () => {
     savingAllergies.value = false;
 };
 
+onMounted(async () => {
+    if (authStore.user?.id) {
+        await recommendationStore.fetchSkinProfile();
+    }
+});
+
 const navItems = [
     { id: 'overview', name: 'Overview', icon: PhUser },
+    { id: 'skin-profile', name: 'Skin Profile', icon: PhSparkle },
+    { id: 'routine', name: 'My Routine', icon: PhCalendar },
     { id: 'wishlist', name: 'My Wishlist', icon: PhHeart },
     { id: 'price-alerts', name: 'Price Alerts', icon: PhBell },
     { id: 'shelf', name: 'My Cabinet', icon: PhClockCounterClockwise },

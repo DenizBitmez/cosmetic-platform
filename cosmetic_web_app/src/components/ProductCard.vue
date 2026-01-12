@@ -1,9 +1,9 @@
 <template>
   <div class="group">
     <div class="w-full aspect-square bg-white overflow-hidden relative mb-4 cursor-pointer flex items-center justify-center p-6 border border-gray-100 rounded-lg" @click="$emit('click')">
-        <img :src="product.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop'" 
+        <img :src="imageUrl" 
              alt="Product Image"
-             @error="$emit('remove')"
+             @error="handleImageError"
              class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-in-out" />
     </div>
     
@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useCartStore } from '@/stores/cart';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
@@ -37,6 +37,18 @@ const cartStore = useCartStore();
 const authStore = useAuthStore();
 const router = useRouter();
 const loading = ref(false);
+const imageFailed = ref(false);
+
+const imageUrl = computed(() => {
+    if (imageFailed.value) {
+        return 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop';
+    }
+    return props.product.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1887&auto=format&fit=crop';
+});
+
+const handleImageError = () => {
+    imageFailed.value = true;
+};
 
 const addToCart = async () => {
     if (!authStore.isAuthenticated) {

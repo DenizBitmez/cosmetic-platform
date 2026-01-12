@@ -85,6 +85,16 @@ const router = createRouter({
             component: () => import('../views/ComparisonView.vue')
         },
         {
+            path: '/skin-quiz',
+            name: 'skin-quiz',
+            component: () => import('../views/SkinQuizView.vue')
+        },
+        {
+            path: '/routine-builder',
+            name: 'routine-builder',
+            component: () => import('../views/RoutineBuilderView.vue')
+        },
+        {
             path: '/admin/blog',
             name: 'blog-admin',
             component: () => import('../views/BlogAdminView.vue')
