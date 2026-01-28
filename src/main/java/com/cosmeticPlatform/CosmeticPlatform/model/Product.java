@@ -40,4 +40,5 @@ public class Product {
     // @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     // private List<Rating> ratings;
 
+    private int photoCount = 0;
 }

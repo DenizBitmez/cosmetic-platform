@@ -28,7 +28,7 @@
             </div>
 
             <!-- Tabs Navigation -->
-            <div class="flex border-b border-gray-100 mb-6">
+            <div class="flex border-b border-gray-100 mb-6 overflow-x-auto no-scrollbar">
               <button @click="activeTab = 'overview'" :class="['flex-1 pb-3 text-sm font-bold transition-colors border-b-2', activeTab === 'overview' ? 'border-brand-dark text-brand-dark' : 'border-transparent text-gray-400 hover:text-gray-600']">
                 Product Details
               </button>
@@ -37,6 +37,12 @@
               </button>
               <button @click="activeTab = 'manual'" :class="['flex-1 pb-3 text-sm font-bold transition-colors border-b-2', activeTab === 'manual' ? 'border-brand-gold text-brand-gold' : 'border-transparent text-gray-400 hover:text-gray-600']">
                 🔍 Manual Check
+              </button>
+              <button @click="activeTab = 'photos'" :class="['flex-1 pb-3 text-sm font-bold transition-colors border-b-2', activeTab === 'photos' ? 'border-purple-500 text-purple-700' : 'border-transparent text-gray-400 hover:text-gray-600']">
+                📸 Photos
+              </button>
+              <button @click="activeTab = 'qa'" :class="['flex-1 pb-3 text-sm font-bold transition-colors border-b-2', activeTab === 'qa' ? 'border-blue-500 text-blue-700' : 'border-transparent text-gray-400 hover:text-gray-600']">
+                💬 Q&A
               </button>
             </div>
 
@@ -135,6 +141,125 @@
                </div>
             </div>
 
+            <!-- TAB CONTENT: COMMUNITY PHOTOS -->
+            <div v-show="activeTab === 'photos'" class="overflow-y-auto pr-2 custom-scrollbar flex-1 pb-20 mt-4">
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-xs text-gray-500">Real results from our community.</p>
+                    <button @click="showUploadModal = true" class="text-xs bg-brand-gold text-white px-3 py-1.5 rounded-full font-bold hover:bg-brand-dark transition-colors flex items-center gap-1">
+                        <PhCamera :size="14" weight="bold" /> Share Yours
+                    </button>
+                </div>
+
+                <div v-if="communityStore.loading" class="flex justify-center py-8">
+                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
+                </div>
+
+                <div v-else-if="communityStore.photos.length === 0" class="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <PhCamera :size="32" class="mx-auto text-gray-300 mb-2" weight="duotone" />
+                    <p class="text-sm font-medium text-gray-900">No photos yet</p>
+                    <p class="text-xs text-gray-500">Be the first to share your experience!</p>
+                </div>
+
+                <div v-else class="grid grid-cols-2 gap-3">
+                    <div v-for="photo in communityStore.photos" :key="photo.id" class="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer">
+                        <img :src="photo.imageUrl" class="w-full h-full object-cover transition-transform group-hover:scale-110">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                             <div class="w-full text-white text-xs">
+                                 <p class="font-bold truncate">{{ photo.user?.username || 'User' }}</p>
+                                 <div class="flex justify-between items-center mt-1">
+                                    <span class="truncate opacity-80 text-[10px]">{{ photo.description }}</span>
+                                    <button @click.stop="communityStore.likePhoto(photo.id)" class="flex items-center gap-0.5 hover:text-red-400">
+                                        <PhHeart :size="12" weight="fill" /> {{ photo.likes }}
+                                    </button>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB CONTENT: Q&A -->
+            <div v-show="activeTab === 'qa'" class="overflow-y-auto pr-2 custom-scrollbar flex-1 pb-20 mt-4">
+                <div class="bg-blue-50 p-4 rounded-xl mb-6">
+                    <h3 class="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <PhQuestion :size="18" weight="bold" /> Ask a Question
+                    </h3>
+                    <div class="flex gap-2">
+                        <input v-model="newQuestionText" type="text" placeholder="Is this suitable for sensitive skin?" class="flex-1 text-xs border border-blue-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button @click="handleAskQuestion" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors">
+                            <PhPaperPlaneRight :size="16" weight="fill" />
+                        </button>
+                    </div>
+                </div>
+
+                <div v-if="qaStore.loading" class="flex justify-center py-8">
+                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
+                </div>
+
+                <div v-else-if="qaStore.questions.length === 0" class="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                     <PhChatCircle :size="32" class="mx-auto text-gray-300 mb-2" weight="duotone" />
+                     <p class="text-sm font-medium text-gray-900">No questions yet</p>
+                     <p class="text-xs text-gray-500">Ask the first question about this product!</p>
+                </div>
+
+                <div v-else class="space-y-4">
+                    <div v-for="q in qaStore.questions" :key="q.id" class="border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow">
+                        <div class="flex items-start gap-3">
+                            <div class="bg-gray-100 p-2 rounded-full">
+                                <PhQuestion :size="16" class="text-gray-500" />
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <p class="text-sm font-bold text-gray-900">{{ q.content }}</p>
+                                    <span class="text-[10px] text-gray-400">{{ new Date(q.createdDate).toLocaleDateString() }}</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Asked by {{ q.user?.username || 'User' }}</p>
+                                
+                                <div class="flex items-center gap-4 mt-3">
+                                    <button @click="qaStore.voteQuestion(q.id)" class="text-xs text-gray-500 flex items-center gap-1 hover:text-blue-600">
+                                        <PhThumbsUp :size="14" /> {{ q.upvotes }} Helpful
+                                    </button>
+                                    <button @click="showAnswerForm[q.id] = !showAnswerForm[q.id]" class="text-xs text-brand-dark font-bold hover:underline">
+                                        Reply
+                                    </button>
+                                </div>
+
+                                <!-- Answer Input -->
+                                <div v-if="showAnswerForm[q.id]" class="mt-3 flex gap-2">
+                                    <input v-model="newAnswerText[q.id]" type="text" placeholder="Write your answer..." class="flex-1 text-xs border border-gray-200 rounded-lg p-2 focus:ring-1 focus:ring-black">
+                                    <button @click="handleAnswerQuestion(q.id)" class="bg-black text-white px-3 py-1 rounded text-xs font-bold">Post</button>
+                                </div>
+
+                                <!-- Answers List -->
+                                <div v-if="q.answers && q.answers.length > 0" class="mt-4 pl-4 border-l-2 border-gray-100 space-y-3">
+                                    <div v-for="ans in q.answers" :key="ans.id" class="bg-gray-50 p-3 rounded-lg">
+                                        <div class="flex justify-between items-start">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs font-bold text-gray-800">{{ ans.user?.username }}</span>
+                                                <span v-if="ans.expertAnswer" class="bg-green-100 text-green-700 text-[10px] px-1.5 py-0.5 rounded font-bold flex items-center gap-0.5">
+                                                    <PhCheckCircle :size="10" weight="fill" /> Expert
+                                                </span>
+                                            </div>
+                                            <span class="text-[10px] text-gray-400">{{ new Date(ans.createdDate).toLocaleDateString() }}</span>
+                                        </div>
+                                        <p class="text-xs text-gray-600 mt-1">{{ ans.content }}</p>
+                                        <button @click="qaStore.voteAnswer(q.id, ans.id)" class="text-[10px] text-gray-400 flex items-center gap-1 mt-2 hover:text-blue-600">
+                                            <PhThumbsUp :size="12" /> {{ ans.upvotes }} Helpful
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <PhotoUploadModal 
+                :isOpen="showUploadModal" 
+                :product="product"
+                @close="showUploadModal = false"
+            />
+
             <!-- Price Alert Modal -->
             <PriceAlertModal :show="showPriceAlertModal" :product="product" @close="showPriceAlertModal = false" @created="onPriceAlertCreated" />
 
@@ -175,8 +300,11 @@ import { useWishlistStore } from '@/stores/wishlist';
 import { useComparisonStore } from '@/stores/comparison';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
-import { PhClockCounterClockwise, PhCheckCircle, PhShoppingCart, PhHeart, PhScales, PhBell } from '@phosphor-icons/vue';
+import { PhClockCounterClockwise, PhCheckCircle, PhShoppingCart, PhHeart, PhScales, PhBell, PhCamera, PhQuestion, PhThumbsUp, PhChatCircle, PhPaperPlaneRight } from '@phosphor-icons/vue';
 import PriceAlertModal from './PriceAlertModal.vue';
+import PhotoUploadModal from './PhotoUploadModal.vue';
+import { useCommunityStore } from '@/stores/community';
+import { useQAStore } from '@/stores/qa';
 
 const props = defineProps({
   product: {
@@ -192,16 +320,22 @@ const authStore = useAuthStore();
 const uiStore = useUiStore();
 const wishlistStore = useWishlistStore();
 const comparisonStore = useComparisonStore();
+const communityStore = useCommunityStore();
+const qaStore = useQAStore();
 const router = useRouter();
 
 const activeTab = ref('overview');
 const manualText = ref('');
 const manualResults = ref([]);
+const newQuestionText = ref('');
+const newAnswerText = ref({}); // Map of questionId -> text
+const showAnswerForm = ref({}); // Map of questionId -> boolean
 const analyzing = ref(false);
 const addingToWishlist = ref(false);
 const isInWishlist = ref(false);
 const isInComparison = ref(false);
 const showPriceAlertModal = ref(false);
+const showUploadModal = ref(false);
 
 // Mock Ingredients DB for enriching external products
 const MOCK_INGREDIENTS_DB = [
@@ -538,8 +672,34 @@ watch(() => props.product, (newVal) => {
         trackViewed();
         checkWishlistStatus();
         checkComparisonStatus();
+        communityStore.fetchProductPhotos(newVal.id);
+        qaStore.fetchQuestions(newVal.id);
     }
 }, { immediate: true });
+
+const handleAskQuestion = async () => {
+    if (!authStore.isAuthenticated) {
+        uiStore.notify("Please login to ask a question.", 'info');
+        return;
+    }
+    const success = await qaStore.askQuestion(authStore.user.id, props.product, newQuestionText.value);
+    if (success) {
+        newQuestionText.value = '';
+    }
+};
+
+const handleAnswerQuestion = async (questionId) => {
+    if (!authStore.isAuthenticated) {
+        uiStore.notify("Please login to answer.", 'info');
+        return;
+    }
+    const text = newAnswerText.value[questionId];
+    const success = await qaStore.answerQuestion(authStore.user.id, questionId, text);
+    if (success) {
+        newAnswerText.value[questionId] = '';
+        showAnswerForm.value[questionId] = false;
+    }
+};
 </script>
 
 <style scoped>
