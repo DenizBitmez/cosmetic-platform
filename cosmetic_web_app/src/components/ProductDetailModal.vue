@@ -254,6 +254,33 @@
                 </div>
             </div>
 
+            <!-- BUNDLE DEALS SECTION -->
+            <div v-if="bundleStore.bundles.length > 0 && activeTab === 'overview'" class="mt-8 border-t border-gray-100 pt-8 px-2 pb-8">
+                 <h3 class="text-lg font-serif text-gray-900 mb-4 flex items-center gap-2">
+                    <PhPackage :size="24" weight="duotone" class="text-brand-gold" /> Frequently Bought Together
+                 </h3>
+                 <div v-for="bundle in bundleStore.bundles" :key="bundle.id" class="bg-gradient-to-br from-brand-cream/30 to-white border border-brand-gold/20 rounded-xl p-4 shadow-sm">
+                     <div class="flex items-center justify-between mb-4">
+                         <div>
+                             <h4 class="font-bold text-gray-900">{{ bundle.name }}</h4>
+                             <p class="text-xs text-green-600 font-bold bg-green-50 px-2 py-1 rounded-full inline-block mt-1">Save {{ (bundle.discountPercentage * 100).toFixed(0) }}%</p>
+                         </div>
+                         <button @click="handleAddBundle(bundle)" class="bg-black text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors uppercase tracking-wider">
+                             Add All to Cart
+                         </button>
+                     </div>
+                     <div class="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
+                         <div v-for="bp in bundle.products" :key="bp.id" class="flex-shrink-0 w-24 flex flex-col items-center">
+                             <div class="w-20 h-20 bg-white rounded-lg border border-gray-100 p-2 flex items-center justify-center mb-2">
+                                 <img :src="bp.image" class="max-h-full max-w-full object-contain">
+                             </div>
+                             <p class="text-[10px] text-center font-medium line-clamp-2 leading-tight">{{ bp.name }}</p>
+                             <p class="text-[10px] text-gray-400 mt-1">${{ bp.price }}</p>
+                         </div>
+                     </div>
+                 </div>
+            </div>
+
             <PhotoUploadModal 
                 :isOpen="showUploadModal" 
                 :product="product"
@@ -305,6 +332,8 @@ import PriceAlertModal from './PriceAlertModal.vue';
 import PhotoUploadModal from './PhotoUploadModal.vue';
 import { useCommunityStore } from '@/stores/community';
 import { useQAStore } from '@/stores/qa';
+import { useBundleStore } from '@/stores/bundle';
+import { PhPackage } from '@phosphor-icons/vue';
 
 const props = defineProps({
   product: {
@@ -322,6 +351,7 @@ const wishlistStore = useWishlistStore();
 const comparisonStore = useComparisonStore();
 const communityStore = useCommunityStore();
 const qaStore = useQAStore();
+const bundleStore = useBundleStore();
 const router = useRouter();
 
 const activeTab = ref('overview');
@@ -674,8 +704,42 @@ watch(() => props.product, (newVal) => {
         checkComparisonStatus();
         communityStore.fetchProductPhotos(newVal.id);
         qaStore.fetchQuestions(newVal.id);
+        bundleStore.fetchBundles(newVal.id, {
+            name: newVal.name,
+            category: newVal.product_type || newVal.category,
+            price: newVal.price,
+            image: newVal.image || newVal.api_featured_image
+        });
     }
 }, { immediate: true });
+
+const handleAddBundle = async (bundle) => {
+    if (!authStore.isAuthenticated) {
+        uiStore.notify("Please login to add bundle.", 'info');
+        return;
+    }
+
+    // Add each product to cart
+    let successCount = 0;
+    for (const p of bundle.products) {
+        const success = await cartStore.addToCart(p.id, 1, {
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            price: p.price, // Ideally apply discount here if backend allowed
+            image: p.image,
+            stock: 100
+        });
+        if (success) successCount++;
+    }
+
+    if (successCount > 0) {
+        uiStore.notify(`${successCount} items added to cart! 🛍️`);
+        cartStore.toggleDrawer(true);
+    } else {
+        uiStore.notify("Failed to add items.", 'error');
+    }
+};
 
 const handleAskQuestion = async () => {
     if (!authStore.isAuthenticated) {

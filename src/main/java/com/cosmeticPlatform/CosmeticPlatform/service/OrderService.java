@@ -18,14 +18,16 @@ public class OrderService {
     private final CartService cartService;
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
+    private final LoyaltyService loyaltyService;
 
     @Autowired
     public OrderService(OrderRepository orderRepository, CartService cartService, AddressRepository addressRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository, LoyaltyService loyaltyService) {
         this.orderRepository = orderRepository;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
+        this.loyaltyService = loyaltyService;
     }
 
     @Transactional
@@ -86,6 +88,10 @@ public class OrderService {
 
         order.setOrderItems(orderItems);
         Order savedOrder = orderRepository.save(order);
+
+        // Award Loyalty Points (1 point per $1)
+        int pointsEarned = (int) savedOrder.getTotalAmount();
+        loyaltyService.earnPoints(userId, pointsEarned, "Earned from Order #" + savedOrder.getId());
 
         cartService.clearCart(userId);
         return savedOrder;

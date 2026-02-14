@@ -30,14 +30,16 @@ public class IngredientAnalysisService {
             if (name.isEmpty())
                 continue;
 
-            Optional<Ingredient> ingredient = ingredientRepository.findFirstByInciNameContainingIgnoreCase(name);
+            Optional<Ingredient> ingredient = ingredientRepository.findByName(name)
+                    .or(() -> ingredientRepository.findFirstByNameContainingIgnoreCase(name));
             if (ingredient.isPresent()) {
                 results.add(ingredient.get());
             } else {
                 // Return a "virtual" ingredient if not found, with unknown score
                 Ingredient unknown = new Ingredient();
-                unknown.setInciName(name);
-                unknown.setScore("Unknown");
+                unknown.setName(name);
+                unknown.setSafetyRating(0); // 0 means unknown/unrated
+                unknown.setAlertType("neutral");
                 results.add(unknown);
             }
         }

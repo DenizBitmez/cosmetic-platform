@@ -415,6 +415,54 @@
                 </div>
             </div>
 
+            <!-- LOYALTY POINTS TAB -->
+            <div v-else-if="currentTab === 'loyalty'" class="space-y-6">
+                 <div class="flex justify-between items-center border-b pb-4">
+                     <h2 class="text-xl font-bold text-gray-900">My Loyalty Points</h2>
+                 </div>
+
+                 <!-- Point Balance Card -->
+                 <div class="bg-gradient-to-r from-brand-dark to-gray-900 rounded-xl p-8 text-white relative overflow-hidden shadow-xl">
+                      <div class="absolute top-0 right-0 p-8 opacity-10"><PhCoin :size="120" weight="fill"/></div>
+                      <div class="relative z-10">
+                          <p class="text-sm font-medium text-gray-300 uppercase tracking-widest mb-2">Current Balance</p>
+                          <h3 class="text-5xl font-bold font-serif mb-4 flex items-center gap-2">
+                            {{ loyaltyStore.pointsBalance }} <span class="text-lg text-brand-gold font-sans font-medium">Points</span>
+                          </h3>
+                          <p class="text-sm text-gray-400">Lifetime Earned: <span class="text-white font-bold">{{ loyaltyStore.totalEarned }}</span></p>
+                          <div class="mt-6 inline-block bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
+                             <p class="text-xs">💡 You earn <strong>1 Point</strong> for every <strong>$1</strong> spent.</p>
+                          </div>
+                      </div>
+                 </div>
+
+                 <!-- History List -->
+                 <div>
+                    <h3 class="font-bold text-gray-900 mb-4">Points History</h3>
+                    <div v-if="loyaltyStore.loading" class="text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-brand-dark"></div></div>
+                    <div v-else-if="loyaltyStore.transactions.length === 0" class="text-center py-8 text-gray-500 border rounded-lg bg-gray-50">
+                        No point transactions yet. Start shopping to earn!
+                    </div>
+                    <div v-else class="space-y-3">
+                        <div v-for="tx in loyaltyStore.transactions" :key="tx.id" class="border rounded-lg p-4 flex justify-between items-center bg-white hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-brand-cream p-2 rounded-full" :class="tx.points > 0 ? 'text-green-600' : 'text-red-600'">
+                                    <PhCoin v-if="tx.points > 0" weight="fill" />
+                                    <PhTag v-else weight="fill" />
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-900">{{ tx.description }}</p>
+                                    <p class="text-xs text-gray-500">{{ new Date(tx.transactionDate).toLocaleDateString() }}</p>
+                                </div>
+                            </div>
+                            <span class="font-bold font-mono" :class="tx.points > 0 ? 'text-green-600' : 'text-red-500'">
+                                {{ tx.points > 0 ? '+' : '' }}{{ tx.points }}
+                            </span>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
             <!-- COUPONS TAB -->
             <div v-else-if="currentTab === 'coupons'" class="space-y-6">
                  <h2 class="text-xl font-bold text-gray-900 border-b pb-4">My Coupons</h2>
@@ -733,11 +781,14 @@ import {
     PhSun, PhMoon
 } from '@phosphor-icons/vue';
 import { useRecommendationStore } from '@/stores/recommendation';
+import { useLoyaltyStore } from '@/stores/loyalty';
+import { PhCoin } from '@phosphor-icons/vue';
 
 const authStore = useAuthStore();
 const wishlistStore = useWishlistStore();
 const priceAlertStore = usePriceAlertStore();
 const recommendationStore = useRecommendationStore();
+const loyaltyStore = useLoyaltyStore();
 const uiStore = useUiStore();
 const router = useRouter();
 
@@ -762,6 +813,8 @@ const saveAllergies = async () => {
 onMounted(async () => {
     if (authStore.user?.id) {
         await recommendationStore.fetchSkinProfile();
+        await loyaltyStore.fetchBalance();
+        await loyaltyStore.fetchHistory();
     }
 });
 
@@ -775,6 +828,7 @@ const navItems = [
     { id: 'orders', name: 'My Orders', icon: PhPackage },
     { id: 'addresses', name: 'My Addresses', icon: PhMapPin },
     { id: 'wallet', name: 'Saved Cards', icon: PhCreditCard },
+    { id: 'loyalty', name: 'My Points', icon: PhCoin },
     { id: 'coupons', name: 'My Coupons', icon: PhTag },
     { id: 'viewed', name: 'Recently Viewed', icon: PhArrowsClockwise },
     { id: 'help', name: 'Help & FAQ', icon: PhQuestion },

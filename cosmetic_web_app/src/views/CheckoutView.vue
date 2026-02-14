@@ -152,6 +152,38 @@
               </li>
             </ul>
 
+            <!-- Loyalty Redemption -->
+             <div class="border-t border-gray-200 mt-6 pt-6 mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-medium text-gray-900 flex items-center gap-2">
+                        <PhCoin class="text-brand-gold" weight="fill" />
+                        Redeem Points
+                    </h3>
+                    <span class="text-xs text-gray-500">Balance: {{ loyaltyStore.pointsBalance }} points</span>
+                </div>
+                
+                <div v-if="loyaltyStore.pointsBalance > 0" class="flex gap-2">
+                    <input 
+                        v-model.number="redeemAmount" 
+                        type="number" 
+                        :max="Math.min(loyaltyStore.pointsBalance, cartStore.totalAmount * 10)" 
+                        min="0"
+                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-gold focus:border-brand-gold sm:text-sm"
+                        placeholder="Points to use"
+                    >
+                    <button 
+                        @click="redeemAmount = Math.min(loyaltyStore.pointsBalance, Math.floor(cartStore.totalAmount))"
+                        class="text-xs font-bold text-brand-gold uppercase tracking-wider px-2 hover:text-brand-dark"
+                    >
+                        Max
+                    </button>
+                </div>
+                <p v-else class="text-xs text-gray-500 italic">You don't have any points to redeem yet.</p>
+                <p class="text-xs text-gray-400 mt-1" v-if="redeemAmount > 0">
+                    Converting {{ redeemAmount }} points to ${{ redeemAmount.toFixed(2) }} discount
+                </p>
+             </div>
+
             <div class="border-t border-gray-200 mt-6 pt-6">
               <div class="flex justify-between text-base font-medium text-gray-900">
                 <p>Subtotal</p>
@@ -161,9 +193,13 @@
                 <p>Shipping</p>
                 <p>Free</p>
               </div>
+              <div v-if="redeemAmount > 0" class="flex justify-between text-base font-medium text-green-600 mt-2 text-sm">
+                <p>Points Discount</p>
+                <p>-${{ redeemAmount.toFixed(2) }}</p>
+              </div>
                <div class="flex justify-between text-lg font-serif font-bold text-gray-900 mt-4 pt-4 border-t">
                 <p>Total</p>
-                <p>${{ cartStore.totalAmount.toFixed(2) }}</p>
+                <p>${{ (cartStore.totalAmount - redeemAmount).toFixed(2) }}</p>
               </div>
 
               <div class="mt-6">
@@ -196,11 +232,13 @@ import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
 import { loadStripe } from '@stripe/stripe-js';
-import { PhShoppingCart, PhCheckCircle, PhTrash, PhWarning, PhQuestion, PhArrowSquareUpRight } from '@phosphor-icons/vue';
+import { PhShoppingCart, PhCheckCircle, PhTrash, PhWarning, PhQuestion, PhArrowSquareUpRight, PhCoin } from '@phosphor-icons/vue';
+import { useLoyaltyStore } from '@/stores/loyalty';
 
 const cartStore = useCartStore();
 const addressStore = useAddressStore();
 const authStore = useAuthStore();
+const loyaltyStore = useLoyaltyStore();
 const router = useRouter();
 
 const selectedAddressId = ref(null);
@@ -212,6 +250,7 @@ const stripeStep = ref('IDLE');
 const paymentError = ref(null);
 const publicKeySnapshot = ref(null);
 const showAmazonHelp = ref(false);
+const redeemAmount = ref(0);
 
 const isAddressSelected = computed(() => {
     if (!selectedAddressId.value) return false;
@@ -259,6 +298,9 @@ onMounted(async () => {
     if (cartStore.totalAmount > 0) {
         await initStripe();
     }
+    
+    // Fetch loyalty points
+    await loyaltyStore.fetchBalance();
 });
 
 import { watch } from 'vue';
@@ -362,6 +404,14 @@ const handleSubmitPayment = async () => {
     paymentError.value = null;
 
     try {
+        // If redeeming points, handle that first
+        if (redeemAmount.value > 0) {
+             const success = await loyaltyStore.redeemPoints(redeemAmount.value);
+             if (!success) {
+                 throw new Error("Failed to redeem points. Please try again or clear redemption.");
+             }
+        }
+
         const { error } = await stripe.confirmPayment({
             elements,
             confirmParams: {

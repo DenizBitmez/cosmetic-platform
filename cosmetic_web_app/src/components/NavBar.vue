@@ -22,6 +22,9 @@
             <router-link to="/blog" class="border-transparent text-gray-500 hover:text-brand-gold inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium uppercase tracking-wide transition-colors">
               Blog
             </router-link>
+            <router-link to="/ingredients" class="border-transparent text-gray-500 hover:text-brand-gold inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium uppercase tracking-wide transition-colors">
+              Ingredients
+            </router-link>
           </div>
         </div>
         <div class="flex items-center space-x-6">
