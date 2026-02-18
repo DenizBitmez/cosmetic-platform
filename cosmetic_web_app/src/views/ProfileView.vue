@@ -562,7 +562,10 @@
                         </div>
                         <div class="flex items-center gap-4">
                             <span class="font-mono bg-white border border-dashed border-gray-300 px-3 py-1 rounded text-sm text-gray-600">{{ coupon.code }}</span>
-                            <button class="text-xs font-bold text-brand-gold hover:text-brand-dark uppercase">Copy</button>
+                            <button @click="copyCoupon(coupon.code)" class="text-xs font-bold text-brand-gold hover:text-brand-dark uppercase flex items-center gap-1">
+                                <PhCopy :size="14" />
+                                Copy
+                            </button>
                         </div>
                     </div>
                  </div>
@@ -862,7 +865,7 @@ import {
     PhCreditCard, PhTag, PhClockCounterClockwise, 
     PhQuestion, PhRobot, PhStar, PhTrash, PhWarning, PhX, PhHeart,
     PhBell, PhClock, PhCheckCircle, PhSparkle, PhCalendar,
-    PhSun, PhMoon
+    PhSun, PhMoon, PhCopy
 } from '@phosphor-icons/vue';
 import { useRecommendationStore } from '@/stores/recommendation';
 import { useLoyaltyStore } from '@/stores/loyalty';
@@ -989,6 +992,17 @@ const addToCart = async (product) => {
     }
 };
 
+const copyCoupon = async (code) => {
+    try {
+        await navigator.clipboard.writeText(code);
+        uiStore.notify(`Code ${code} copied to clipboard!`, 'success');
+    } catch (err) {
+        console.error('Failed to copy: ', err);
+        // Fallback or error notification
+        uiStore.notify("Failed to copy code.", 'error');
+    }
+};
+
 const navItems = [
     { id: 'overview', name: 'Overview', icon: PhUser },
     { id: 'skin-profile', name: 'Skin Profile', icon: PhSparkle },
@@ -1013,8 +1027,11 @@ const mockCards = [
 ];
 
 const mockCoupons = [
-    { code: 'WELCOME20', description: '20% Off Your Next Order', expiry: 'Dec 31, 2025' },
-    { code: 'FREESHIP', description: 'Free Shipping on Orders Over $50', expiry: 'N/A' },
+    { code: 'WELCOME20', description: '20% Off Your Next Order', expiry: 'Dec 31, 2026' },
+    { code: 'FREESHIP', description: 'Free Shipping on Orders Over $50', expiry: 'Ongoing' },
+    { code: 'SKINGLOW15', description: '15% Off Vitamin C Serums', expiry: 'Mar 15, 2026' },
+    { code: 'BDAYTREAT', description: '$10 Off Birthday Gift', expiry: 'Valid for 30 days' },
+    { code: 'LOYALTY5', description: 'Extra 5% Off for Loyalty Members', expiry: 'Dec 31, 2026' },
 ];
 
 const mockFaqs = [

@@ -25,7 +25,14 @@ public class RoutineController {
 
     @PostMapping
     public ResponseEntity<Routine> createRoutine(@RequestBody Map<String, Object> payload) {
-        Integer userId = (Integer) payload.get("userId");
+        Object userIdObj = payload.get("userId");
+        Integer userId = null;
+        if (userIdObj instanceof Number) {
+            userId = ((Number) userIdObj).intValue();
+        } else if (userIdObj instanceof String) {
+            userId = Integer.parseInt((String) userIdObj);
+        }
+
         String name = (String) payload.get("name");
         String timeOfDay = (String) payload.get("timeOfDay");
 
@@ -48,7 +55,14 @@ public class RoutineController {
 
     @PostMapping("/{id}/steps")
     public ResponseEntity<RoutineStep> addStep(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
-        Integer productId = (Integer) payload.get("productId");
+        Object productIdObj = payload.get("productId");
+        Integer productId = null;
+        if (productIdObj instanceof Number) {
+            productId = ((Number) productIdObj).intValue();
+        } else if (productIdObj instanceof String) {
+            productId = Integer.parseInt((String) productIdObj);
+        }
+
         String notes = (String) payload.get("notes");
 
         return ResponseEntity.ok(routineService.addStep(id, productId, notes));

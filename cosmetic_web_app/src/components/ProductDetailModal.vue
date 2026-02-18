@@ -72,6 +72,18 @@
               <div class="mb-6">
                 <h3 class="text-sm font-bold text-gray-900 mb-2">Description</h3>
                 <div class="text-xs text-gray-600 leading-relaxed space-y-2" v-html="product.description || 'No detailed description available.'"></div>
+                <div class="text-xs text-gray-600 leading-relaxed space-y-2" v-html="product.description || 'No detailed description available.'"></div>
+              </div>
+
+              <!-- Key Benefits Section -->
+              <div v-if="keyBenefits.length > 0" class="mb-6">
+                <h3 class="text-sm font-bold text-gray-900 mb-2">Key Benefits</h3>
+                <div class="flex flex-wrap gap-2">
+                    <span v-for="benefit in keyBenefits" :key="benefit" class="bg-brand-gold/10 text-brand-dark px-2.5 py-1 rounded-md text-xs font-medium border border-brand-gold/20 flex items-center gap-1">
+                        <PhCheckCircle :size="12" weight="fill" class="text-brand-gold" />
+                        {{ benefit }}
+                    </span>
+                </div>
               </div>
 
               <div v-if="product.paoMonths" class="bg-brand-cream/30 p-4 rounded-xl border border-brand-gold/20 flex items-center gap-3">
@@ -89,27 +101,27 @@
               <div v-if="ingredients && ingredients.length > 0">
                 <div class="overflow-hidden border border-gray-200 rounded-lg">
                   <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                      <tr>
-                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">İçerik Adı (INCI)</th>
-                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider hidden sm:table-cell">İçerik Adı (TR)</th>
-                        <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nedir?</th>
-                        <th scope="col" class="px-3 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Puan</th>
-                      </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                      <tr v-for="ing in ingredients" :key="ing.id || ing.inciName" class="hover:bg-gray-50">
-                        <td class="px-3 py-3 text-xs font-medium text-gray-900 align-top">
-                          {{ ing.inciName }}
-                          <div class="sm:hidden text-gray-500 mt-1 italic">{{ ing.turkishName }}</div>
-                        </td>
-                        <td class="px-3 py-3 text-xs text-gray-500 align-top hidden sm:table-cell">{{ ing.turkishName }}</td>
-                        <td class="px-3 py-3 text-xs text-gray-500 align-top">{{ ing.description }}</td>
-                        <td class="px-3 py-3 whitespace-nowrap align-top text-center">
-                          <span :class="['px-2 py-1 inline-flex text-[10px] leading-5 font-semibold rounded-full', getScoreColorClass(ing.score)]">
-                            {{ ing.score }}
-                          </span>
-                        </td>
+                      <thead class="bg-gray-50">
+                        <tr>
+                          <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Ingredient (INCI)</th>
+                          <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Common Name</th>
+                          <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">What is it?</th>
+                          <th scope="col" class="px-3 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Score</th>
+                        </tr>
+                      </thead>
+                      <tbody class="bg-white divide-y divide-gray-200">
+                        <tr v-for="ing in ingredients" :key="ing.id || ing.inciName" class="hover:bg-gray-50">
+                          <td class="px-3 py-3 text-xs font-medium text-gray-900 align-top">
+                            {{ ing.inciName }}
+                            <div class="sm:hidden text-gray-500 mt-1 italic">{{ ing.commonName }}</div>
+                          </td>
+                          <td class="px-3 py-3 text-xs text-gray-500 align-top hidden sm:table-cell">{{ ing.commonName }}</td>
+                          <td class="px-3 py-3 text-xs text-gray-500 align-top">{{ ing.description }}</td>
+                          <td class="px-3 py-3 whitespace-nowrap align-top text-center">
+                            <span :class="['px-2 py-1 inline-flex text-[10px] leading-5 font-semibold rounded-full', getScoreColorClass(ing.score)]">
+                              {{ ing.score }}
+                            </span>
+                          </td>
                       </tr>
                     </tbody>
                   </table>
@@ -369,55 +381,55 @@ const showUploadModal = ref(false);
 
 // Mock Ingredients DB for enriching external products
 const MOCK_INGREDIENTS_DB = [
-    { inciName: 'Aqua', turkishName: 'Su', description: 'Çözücü olarak kullanılır, cildi nemlendirir.', score: 'İyi' },
-    { inciName: 'Glycerin', turkishName: 'Gliserin', description: 'Cildi nemlendirir ve korur.', score: 'Çok İyi' },
-    { inciName: 'Niacinamide', turkishName: 'B3 Vitamini', description: 'Cilt bariyerini güçlendirir, leke karşıtıdır.', score: 'Çok İyi' },
-    { inciName: 'Dimethicone', turkishName: 'Dimetikon', description: 'Cildi pürüzsüzleştirir ancak gözenekleri tıkayabilir.', score: 'Orta' },
-    { inciName: 'Phenoxyethanol', turkishName: 'Fenoksietanol', description: 'Koruyucu maddedir, bakterilere karşı etkilidir.', score: 'Orta' },
-    { inciName: 'Tocopherol', turkishName: 'E Vitamini', description: 'Güçlü bir antioksidandır, cildi besler.', score: 'Çok İyi' },
-    { inciName: 'Sodium Hyaluronate', turkishName: 'Hyaluronik Asit', description: 'Cildin su tutma kapasitesini artırır.', score: 'Çok İyi' },
-    { inciName: 'Parfum', turkishName: 'Parfüm', description: 'Ürüne koku verir, alerjen olabilir.', score: 'Riskli' },
-    { inciName: 'Titanium Dioxide', turkishName: 'Titanyum Dioksit', description: 'Güneş koruyucu ve renklendirici ajan.', score: 'İyi' },
-    { inciName: 'Mica', turkishName: 'Mika', description: 'Işıltı ve parlaklık verir.', score: 'İyi' },
-    { inciName: 'Retinol', turkishName: 'Retinol', description: 'Yaşlanma karşıtıdır, hücre yenilenmesini hızlandırır.', score: 'Çok İyi' },
-    { inciName: 'Salicylic Acid', turkishName: 'Salisilik Asit', description: 'Gözenekleri temizler, sivilce karşıtıdır.', score: 'Çok İyi' },
-    { inciName: 'Parabens', turkishName: 'Parabenler', description: 'Koruyucu grubudur, hormon sistemini etkileyebilir.', score: 'Riskli' },
-    { inciName: 'Aloe Barbadensis Leaf Juice', turkishName: 'Aloe Vera Suyu', description: 'Cildi yatıştırır ve nemlendirir.', score: 'Çok İyi' },
-    { inciName: 'CI 77491', turkishName: 'Demir Oksit', description: 'Kozmetik renklendirici.', score: 'İyi' }
+    { inciName: 'Aqua', commonName: 'Water', description: 'Solvent, hydrates the skin.', score: 'Good', benefits: ['Hydrating'] },
+    { inciName: 'Glycerin', commonName: 'Glycerin', description: 'Powerful moisturizer and humectant.', score: 'Very Good', benefits: ['Moisturizing', 'Repairing'] },
+    { inciName: 'Niacinamide', commonName: 'Vitamin B3', description: 'Strengthens skin barrier, brightens dark spots.', score: 'Very Good', benefits: ['Brightening', 'Soothing', 'Pore Care'] },
+    { inciName: 'Dimethicone', commonName: 'Dimethicone', description: 'Makes skin smooth and silky.', score: 'Average', benefits: ['Smoothing'] },
+    { inciName: 'Phenoxyethanol', commonName: 'Phenoxyethanol', description: 'Preservative, effective against bacteria.', score: 'Average', benefits: [] },
+    { inciName: 'Tocopherol', commonName: 'Vitamin E', description: 'Strong antioxidant, protects skin.', score: 'Very Good', benefits: ['Anti-Aging', 'Protecting'] },
+    { inciName: 'Sodium Hyaluronate', commonName: 'Hyaluronic Acid', description: 'Holds 1000x its weight in water.', score: 'Very Good', benefits: ['Plumping', 'Hydrating'] },
+    { inciName: 'Parfum', commonName: 'Fragrance', description: 'Adds scent, potential allergen.', score: 'Risky', benefits: [] },
+    { inciName: 'Titanium Dioxide', commonName: 'Titanium Dioxide', description: 'UV filter and brightener.', score: 'Good', benefits: ['Sun Protection'] },
+    { inciName: 'Mica', commonName: 'Mica', description: 'Adds shimmer and glow.', score: 'Good', benefits: ['Radiance'] },
+    { inciName: 'Retinol', commonName: 'Retinol', description: 'Anti-aging gold standard.', score: 'Very Good', benefits: ['Anti-Aging', 'Resurfacing'] },
+    { inciName: 'Salicylic Acid', commonName: 'Salicylic Acid', description: 'Unclogs pores, fights acne.', score: 'Very Good', benefits: ['Acne Control', 'Exfoliating'] },
+    { inciName: 'Parabens', commonName: 'Parabens', description: 'Preservative group.', score: 'Risky', benefits: [] },
+    { inciName: 'Aloe Barbadensis Leaf Juice', commonName: 'Aloe Vera', description: 'Soothing and hydrating.', score: 'Very Good', benefits: ['Soothing', 'Calming'] },
+    { inciName: 'CI 77491', commonName: 'Iron Oxides', description: 'Cosmetic colorant.', score: 'Good', benefits: [] }
 ];
 
 // Real verified ingredients for specific popular products
 const REAL_PRODUCT_INGREDIENTS = {
     'Maybelline Super Stay Matte Ink Liquid Lipstick': [
-        { inciName: 'Dimethicone', turkishName: 'Dimetikon', description: 'Cildi pürüzsüzleştirir, mat bitiş sağlar.', score: 'Orta' },
-        { inciName: 'Trimethylsiloxysilicate', turkishName: 'Trimetilsiloksisilik', description: 'Kalıcılığı artıran film oluşturucu.', score: 'İyi' },
-        { inciName: 'Isododecane', turkishName: 'İzododekan', description: 'Uçucu çözücü, hafiflik hissi verir.', score: 'İyi' },
-        { inciName: 'Nylon-611/Dimethicone Copolymer', turkishName: 'Naylon Kopolimer', description: 'Doku artırıcı ve sabitleyici.', score: 'İyi' },
-        { inciName: 'Lauroyl Lysine', turkishName: 'Lauroil Lizin', description: 'Cilt yumuşatıcı amino asit türevi.', score: 'Çok İyi' },
-        { inciName: 'CI 77891', turkishName: 'Titanyum Dioksit', description: 'Beyaz pigment ve opaklaştırıcı.', score: 'İyi' }
+        { inciName: 'Dimethicone', commonName: 'Dimethicone', description: 'Smooths skin, matte finish.', score: 'Average' },
+        { inciName: 'Trimethylsiloxysilicate', commonName: 'Trimethylsiloxysilicate', description: 'Long-wear film former.', score: 'Good' },
+        { inciName: 'Isododecane', commonName: 'Isododecane', description: 'Lightweight solvent.', score: 'Good' },
+        { inciName: 'Nylon-611/Dimethicone Copolymer', commonName: 'Nylon Copolymer', description: 'Texture enhancer.', score: 'Good' },
+        { inciName: 'Lauroyl Lysine', commonName: 'Lauroyl Lysine', description: 'Skin conditioning amino acid.', score: 'Very Good' },
+        { inciName: 'CI 77891', commonName: 'Titanium Dioxide', description: 'White pigment.', score: 'Good' }
     ],
     'L\'Oreal True Match Foundation': [
-        { inciName: 'Aqua', turkishName: 'Su', description: 'Çözücü, temel bileşen.', score: 'İyi' },
-        { inciName: 'Dimethicone', turkishName: 'Dimetikon', description: 'Yumuşatıcı ve bariyer oluşturucu.', score: 'Orta' },
-        { inciName: 'Isododecane', turkishName: 'İzododekan', description: 'Matlaştırıcı ve yayılım artırıcı.', score: 'İyi' },
-        { inciName: 'Glycerin', turkishName: 'Gliserin', description: 'Güçlü nemlendirici.', score: 'Çok İyi' },
-        { inciName: 'PEG-10 Dimethicone', turkishName: 'PEG-10 Dimetikon', description: 'Silikon bazlı emülgatör.', score: 'Orta' },
-        { inciName: 'Sodium Chloride', turkishName: 'Sodyum Klorür', description: 'Kıvam artırıcı tuz.', score: 'İyi' },
-        { inciName: 'Tocopherol', turkishName: 'E Vitamini', description: 'Antioksidan, cildi korur.', score: 'Çok İyi' }
+        { inciName: 'Aqua', commonName: 'Water', description: 'Solvent base.', score: 'Good' },
+        { inciName: 'Dimethicone', commonName: 'Dimethicone', description: 'Smoothing agent.', score: 'Average' },
+        { inciName: 'Isododecane', commonName: 'Isododecane', description: 'Matte finish agent.', score: 'Good' },
+        { inciName: 'Glycerin', commonName: 'Glycerin', description: 'Hydration booster.', score: 'Very Good' },
+        { inciName: 'PEG-10 Dimethicone', commonName: 'PEG-10 Dimethicone', description: 'Silicone emulsifier.', score: 'Average' },
+        { inciName: 'Sodium Chloride', commonName: 'Salt', description: 'Thickener.', score: 'Good' },
+        { inciName: 'Tocopherol', commonName: 'Vitamin E', description: 'Antioxidant.', score: 'Very Good' }
     ],
     'Covergirl LashBlast Volume Mascara': [
-        { inciName: 'Aqua', turkishName: 'Su', description: 'Çözücü.', score: 'İyi' },
-        { inciName: 'Glyceryl Stearate', turkishName: 'Gliseril Stearat', description: 'Emülgatör ve kıvam verici.', score: 'İyi' },
-        { inciName: 'Ammonium Acrylates Copolymer', turkishName: 'Amonyum Akrilat Kopolimer', description: 'Film oluşturucu, kalıcılık sağlar.', score: 'Orta' },
-        { inciName: 'Disteardimonium Hectorite', turkishName: 'Disteardimonyum Hektorit', description: 'Kıvam artırıcı kil türevi.', score: 'İyi' },
-        { inciName: 'Propylene Glycol', turkishName: 'Propilen Glikol', description: 'Nem tutucu ve çözücü.', score: 'Orta' }
+        { inciName: 'Aqua', commonName: 'Water', description: 'Solvent.', score: 'Good' },
+        { inciName: 'Glyceryl Stearate', commonName: 'Glyceryl Stearate', description: 'Emulsifier.', score: 'Good' },
+        { inciName: 'Ammonium Acrylates Copolymer', commonName: 'AC Copolymer', description: 'Film former.', score: 'Average' },
+        { inciName: 'Disteardimonium Hectorite', commonName: 'Hectorite', description: 'Thickener.', score: 'Good' },
+        { inciName: 'Propylene Glycol', commonName: 'Propylene Glycol', description: 'Humectant.', score: 'Average' }
     ],
     'Nyx Professional Makeup Ultimate Shadow Palette': [
-        { inciName: 'Talc', turkishName: 'Talk', description: 'Emici ve matlaştırıcı mineral.', score: 'Orta' },
-        { inciName: 'Magnesium Stearate', turkishName: 'Magnezyum Stearat', description: 'Yapışma ve kayganlık sağlar.', score: 'İyi' },
-        { inciName: 'Dimethicone', turkishName: 'Dimetikon', description: 'Yumuşaklık hissi verir.', score: 'Orta' },
-        { inciName: 'Hydrogenated Polyisobutene', turkishName: 'Hidrojene Poliizobüten', description: 'Sentetik yağ, yumuşatıcı.', score: 'Orta' },
-        { inciName: 'Bis-Diglyceryl Polyacyladipate-2', turkishName: 'Sentetik Lanolin', description: 'Yoğun nemlendirici.', score: 'İyi' }
+        { inciName: 'Talc', commonName: 'Talc', description: 'Absorbent mineral.', score: 'Average' },
+        { inciName: 'Magnesium Stearate', commonName: 'Magnesium Stearate', description: 'Adhesion agent.', score: 'Good' },
+        { inciName: 'Dimethicone', commonName: 'Dimethicone', description: 'Softness agent.', score: 'Average' },
+        { inciName: 'Hydrogenated Polyisobutene', commonName: 'Polyisobutene', description: 'Synthetic emollient.', score: 'Average' },
+        { inciName: 'Bis-Diglyceryl Polyacyladipate-2', commonName: 'Synthetic Lanolin', description: 'Moisturizer.', score: 'Good' }
     ]
 };
 
@@ -435,7 +447,7 @@ const ingredients = computed(() => {
         }
     }
 
-    // 3. Fallback: Deterministic simulation based on ID to keep it consistent
+    // 3. Fallback: Deterministic simulation
     let seed = props.product.id || props.product.name.length;
     const count = 5 + (seed % 5); // 5 to 9 ingredients
     const result = [];
@@ -444,24 +456,59 @@ const ingredients = computed(() => {
     const selectedIndices = new Set();
     while (result.length < count && selectedIndices.size < pool.length) {
         let index = (seed + result.length * 7) % pool.length;
-        
         while (selectedIndices.has(index)) {
             index = (index + 1) % pool.length;
         }
-        
         selectedIndices.add(index);
         result.push(pool[index]);
     }
     return result;
 });
 
+const keyBenefits = computed(() => {
+    const benefits = new Set();
+    
+    // 1. Derive from Ingredients
+    ingredients.value.forEach(ing => {
+        // Check MOCK DB for mapped benefits
+        const mockMatch = MOCK_INGREDIENTS_DB.find(m => m.inciName === ing.inciName);
+        if (mockMatch && mockMatch.benefits) {
+            mockMatch.benefits.forEach(b => benefits.add(b));
+        }
+        
+        // Keyword fallback
+        const desc = (ing.description || '').toLowerCase();
+        if (desc.includes('hydrat') || desc.includes('moistur')) benefits.add('Hydrating');
+        if (desc.includes('sooth') || desc.includes('calm')) benefits.add('Soothing');
+        if (desc.includes('bright') || desc.includes('glow')) benefits.add('Radiant Look');
+        if (desc.includes('anti-aging') || desc.includes('wrinkle')) benefits.add('Anti-Aging');
+        if (desc.includes('acne') || desc.includes('pore')) benefits.add('Pore Control');
+        if (desc.includes('protect') || desc.includes('barrier')) benefits.add('Strengthening');
+    });
+
+    // 2. Derive from Description
+    const desc = (props.product?.description || '').toLowerCase();
+    if (desc.includes('longwear') || desc.includes('long-wear') || desc.includes('last')) benefits.add('Long Wearing');
+    if (desc.includes('matte')) benefits.add('Matte Finish');
+    if (desc.includes('vegan')) benefits.add('Vegan');
+    if (desc.includes('cruelty-free')) benefits.add('Cruelty-Free');
+
+    // Default if empty
+    if (benefits.size === 0) {
+        benefits.add('Dermatologically Tested');
+        benefits.add('Daily Care');
+    }
+
+    return Array.from(benefits).slice(0, 4); // Top 4
+});
+
 const getScoreColorClass = (score) => {
     if (!score) return 'bg-gray-100 text-gray-800';
     const s = score.toLowerCase();
-    if (s.includes('çok iyi')) return 'bg-green-600 text-white';
-    if (s.includes('iyi')) return 'bg-blue-500 text-white';
-    if (s.includes('orta')) return 'bg-yellow-500 text-white';
-    if (s.includes('riskli')) return 'bg-red-500 text-white';
+    if (s.includes('very good') || s.includes('çok iyi')) return 'bg-green-600 text-white';
+    if (s.includes('good') || s.includes('iyi')) return 'bg-blue-500 text-white';
+    if (s.includes('average') || s.includes('orta')) return 'bg-yellow-500 text-white';
+    if (s.includes('risky') || s.includes('riskli')) return 'bg-red-500 text-white';
     return 'bg-gray-200 text-gray-800';
 };
 

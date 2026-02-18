@@ -36,110 +36,139 @@ public class DataSeeder implements CommandLineRunner {
         private void seedIngredients() {
                 // A
                 createIngredient("Alpha-Arbutin", "Skin brightener used to reduce hyperpigmentation.",
-                                "Skin Brightening", 2, "safe");
-                createIngredient("Allantoin", "Soothing ingredient that promotes healing.", "Soothing", 1, "safe");
+                                "Skin Brightening", 2, 0, "Reduces dark spots, evens skin tone.", "safe");
+                createIngredient("Allantoin", "Soothing ingredient that promotes healing.", "Soothing", 1, 0,
+                                "Soothes irritation, promotes healing.", "safe");
+                createIngredient("Alcohol Denat", "Can dry out skin and damage the barrier.", "Solvent, Astringent", 5,
+                                0, "Quick drying, antibacterial.", "warning");
+                createIngredient("Ascorbic Acid", "Potent antioxidant, brightens skin and boosts collagen.",
+                                "Antioxidant", 1, 0, "Brightens skin, boosts collagen, fights free radicals.", "safe");
 
                 // B
-                createIngredient("Benzoyl Peroxide", "Effective acne treatment that kills bacteria.", "Anti-acne", 4,
-                                "warning");
-                createIngredient("Beta-Glucan", "Soothing agent and antioxidant.", "Soothing", 1, "safe");
+                createIngredient("Benzoyl Peroxide", "Effective acne treatment that kills bacteria.", "Anti-acne", 4, 0,
+                                "Kills acne bacteria, unclogs pores.", "warning");
+                createIngredient("Beta-Glucan", "Soothing agent and antioxidant.", "Soothing", 1, 0,
+                                "Soothes redness, hydrates, anti-aging.", "safe");
 
                 // C
-                createIngredient("Caffeine", "Constricts blood vessels, reducing puffiness.", "Antioxidant", 2, "safe");
-                createIngredient("Centella Asiatica", "Hassas cildi yatıştırır, yara iyileşmesini destekler.",
-                                "Soothing", 1, "safe");
-                createIngredient("Ceramide NP", "Cilt bariyerini onarır ve nem kaybını önler.", "Skin Conditioning", 1,
-                                "safe");
+                createIngredient("Caffeine", "Constricts blood vessels, reducing puffiness.", "Antioxidant", 2, 0,
+                                "Reduces puffiness, antioxidant protection.", "safe");
+                createIngredient("Centella Asiatica", "Soothes sensitive skin and promotes wound healing.", "Soothing",
+                                1, 0, "Calms inflammation, stimulates collagen.", "safe");
+                createIngredient("Ceramide NP", "Repairs the skin barrier and prevents moisture loss.",
+                                "Skin Conditioning", 1, 0, "Restores barrier, hydrates.", "safe");
 
                 // D
-                createIngredient("Dimethicone", "Silicone that forms a protective barrier.", "Emollient", 3, "safe");
+                createIngredient("Dimethicone", "Silicone that forms a protective barrier.", "Emollient", 3, 1,
+                                "Smooths texture, locks in moisture.", "safe");
 
                 // E
                 createIngredient("Ethylhexylglycerin", "Skin conditioning agent and preservative booster.",
-                                "Preservative", 2, "safe");
+                                "Preservative", 2, 0, "Skin conditioning, deodorizing.", "safe");
 
                 // F
                 createIngredient("Ferulic Acid", "Antioxidant that boosts effectiveness of Vitamins C and E.",
-                                "Antioxidant", 2, "safe");
+                                "Antioxidant", 2, 0, "Stabilizes Vitamin C, fights free radicals.", "safe");
 
                 // G
-                createIngredient("Glycerin", "Humectant that draws moisture into the skin.", "Humectant", 1, "safe");
-                createIngredient("Glycolic Acid", "AHA - Cilt yüzeyini yeniler, pürüzsüzleştirir.", "Exfoliant", 3,
-                                "safe");
+                createIngredient("Glycerin", "Humectant that draws moisture into the skin.", "Humectant", 1, 0,
+                                "Hydrates, strengthens barrier.", "safe");
+                createIngredient("Glycolic Acid", "AHA - Renews and smooths the skin surface.", "Exfoliant", 3, 0,
+                                "Exfoliates, brightens, smooths texture.", "safe");
 
                 // H
-                createIngredient("Hyaluronic Acid", "Cildi yoğun nemlendirir, dolgunlaştırır.", "Humectant", 1, "safe");
+                createIngredient("Hyaluronic Acid", "Intensely hydrates and plumps the skin.", "Humectant", 1, 0,
+                                "Deep hydration, plumping.", "safe");
 
                 // I
-                createIngredient("Idebenone", "Potent antioxidant.", "Antioxidant", 2, "safe");
+                createIngredient("Idebenone", "Potent antioxidant.", "Antioxidant", 2, 0,
+                                "Prevents environmental damage, reduces fine lines.", "safe");
 
                 // J
-                createIngredient("Jojoba Oil", "Natural oil effectively mimics skin sebum.", "Emollient", 1, "safe");
+                createIngredient("Jojoba Oil", "Natural oil effectively mimics skin sebum.", "Emollient", 1, 2,
+                                "Moisturizes, balances oil production.", "safe");
 
                 // K
-                createIngredient("Kaolin", "Clay that absorbs excess oil.", "Absorbent", 1, "safe");
+                createIngredient("Kaolin", "Clay that absorbs excess oil.", "Absorbent", 1, 0,
+                                "Absorbs oil, detoxifies pores.", "safe");
 
                 // L
-                createIngredient("Lactic Acid", "Gentle AHA exfoliant.", "Exfoliant", 2, "safe");
+                createIngredient("Lactic Acid", "Gentle AHA exfoliant.", "Exfoliant", 2, 0,
+                                "Gentle exfoliation, hydration.", "safe");
 
                 // M
-                createIngredient("Mandelic Acid", "Gentle AHA suitable for sensitive skin.", "Exfoliant", 2, "safe");
+                createIngredient("Mandelic Acid", "Gentle AHA suitable for sensitive skin.", "Exfoliant", 2, 0,
+                                "Exfoliates sensitive skin, anti-bacterial.", "safe");
 
                 // N
-                createIngredient("Niacinamide", "Cilt bariyerini güçlendirir, gözenekleri sıkılaştırır.",
-                                "Skin Conditioning", 1, "safe");
+                createIngredient("Niacinamide", "Strengthens skin barrier and tightens pores.", "Skin Conditioning", 1,
+                                0, "Regulates oil, minimizes pores, brightens.", "safe");
 
                 // O
-                createIngredient("Oxybenzone", "Chemical sunscreen filter.", "Sunscreen", 8, "danger");
+                createIngredient("Oxybenzone", "Chemical sunscreen filter.", "Sunscreen", 8, 0, "UV protection.",
+                                "danger");
 
                 // P
-                createIngredient("Panthenol", "Pro-Vitamin B5, soothes and hydrates.", "Soothing", 1, "safe");
-                createIngredient("Paraben", "Tartışmalı bir koruyucu. Hormon bozucu etkileri olabilir.", "Preservative",
-                                7, "warning");
-                createIngredient("Peptides", "Building blocks of proteins like collagen.", "Anti-aging", 1, "safe");
-                createIngredient("Potassium Sorbate",
-                                "Kozmetikte koruyucu olarak kullanılan sorbik asidin potasyum tuzudur.", "Preservative",
-                                2, "safe");
+                createIngredient("Panthenol", "Pro-Vitamin B5, soothes and hydrates.", "Soothing", 1, 0,
+                                "Soothes, hydrates, repairs barrier.", "safe");
+                createIngredient("Paraben", "Controversial preservative. May have hormone-disrupting effects.",
+                                "Preservative", 7, 0, "Preserves product shelf life.", "warning");
+                createIngredient("Peptides", "Building blocks of proteins like collagen.", "Anti-aging", 1, 0,
+                                "Stimulates collagen, firms skin.", "safe");
+                createIngredient("Potassium Sorbate", "Potassium salt of sorbic acid used as a preservative.",
+                                "Preservative", 2, 0, "Preserves product safety.", "safe");
 
                 // Q
-                createIngredient("Quercetin", "Plant pigment with antioxidant properties.", "Antioxidant", 1, "safe");
+                createIngredient("Quercetin", "Plant pigment with antioxidant properties.", "Antioxidant", 1, 0,
+                                "Soothing, antioxidant.", "safe");
 
                 // R
-                createIngredient("Retinol", "Yaşlanma karşıtı altın standart. Hücre yenilenmesini hızlandırır.",
-                                "Anti-aging", 3, "safe");
-                createIngredient("Resveratrol", "Antioxidant found in grapes.", "Antioxidant", 1, "safe");
+                createIngredient("Retinol", "Anti-aging gold standard. Accelerates cell turnover.", "Anti-aging", 3, 0,
+                                "Reduces wrinkles, treats acne, renews skin.", "safe");
+                createIngredient("Resveratrol", "Antioxidant found in grapes.", "Antioxidant", 1, 0,
+                                "Protects against UV damage, anti-aging.", "safe");
 
                 // S
-                createIngredient("Salicylic Acid", "BHA - Gözenekleri derinlemesine temizler, akne karşıtıdır.",
-                                "Exfoliant", 3, "safe");
-                createIngredient("Shea Butter", "Rich moisturizer.", "Emollient", 1, "safe");
-                createIngredient("Sodium Lauryl Sulfate (SLS)", "Strong harsh surfactant.", "Surfactant", 5, "warning");
-                createIngredient("Squalane", "Cildi nemlendirir ve yumuşatır, gözenekleri tıkamaz.", "Emollient", 1,
+                createIngredient("Salicylic Acid", "BHA - Deeply cleanses pores, anti-acne.", "Exfoliant", 3, 0,
+                                "Unclogs pores, treats blackheads and acne.", "safe");
+                createIngredient("Shea Butter", "Rich moisturizer.", "Emollient", 1, 0, "Deeply moisturizes, soothes.",
                                 "safe");
+                createIngredient("Sodium Lauryl Sulfate (SLS)", "Strong harsh surfactant.", "Surfactant", 5, 3,
+                                "Cleanses, creates foam (can be drying).", "warning");
+                createIngredient("Squalane", "Hydrates and softens skin, does not clog pores.", "Emollient", 1, 1,
+                                "Moisturizes, compatible with all skin types.", "safe");
 
                 // T
-                createIngredient("Titanium Dioxide", "Physical sunscreen filter.", "Sunscreen", 2, "safe");
-                createIngredient("Tocopherol", "Vitamin E, strong antioxidant.", "Antioxidant", 1, "safe");
-                createIngredient("Tea Tree Oil", "Natural antibacterial oil.", "Anti-acne", 3, "safe");
+                createIngredient("Titanium Dioxide", "Physical sunscreen filter.", "Sunscreen", 2, 0,
+                                "Broad spectrum UV protection.", "safe");
+                createIngredient("Tocopherol", "Vitamin E, strong antioxidant.", "Antioxidant", 1, 2,
+                                "Moisturizes, protects against free radicals.", "safe");
+                createIngredient("Tea Tree Oil", "Natural antibacterial oil.", "Anti-acne", 3, 0,
+                                "Treats acne, antibacterial.", "safe");
 
                 // U
-                createIngredient("Urea", "Humectant and exfoliant.", "Humectant", 2, "safe");
+                createIngredient("Urea", "Humectant and exfoliant.", "Humectant", 2, 0, "Hydrates, gently exfoliates.",
+                                "safe");
 
                 // V
-                createIngredient("Vitamin C", "Güçlü antioksidan, cildi aydınlatır.", "Antioxidant", 1, "safe");
+                createIngredient("Vitamin C", "Potent antioxidant, brightens the skin.", "Antioxidant", 1, 0,
+                                "Brightens, boosts collagen.", "safe");
 
                 // W
-                createIngredient("Witch Hazel", "Natural astringent.", "Astringent", 2, "safe");
+                createIngredient("Witch Hazel", "Natural astringent.", "Astringent", 2, 0,
+                                "Tightens pores, controls oil.", "safe");
 
                 // X
-                createIngredient("Xanthan Gum", "Texture enhancer and thickener.", "Texture Enhancer", 1, "safe");
+                createIngredient("Xanthan Gum", "Texture enhancer and thickener.", "Texture Enhancer", 1, 0,
+                                "Improves texture.", "safe");
 
                 // Y
-                createIngredient("Ylang Ylang Oil", "Fragrant essential oil.", "Fragrance", 4, "warning");
+                createIngredient("Ylang Ylang Oil", "Fragrant essential oil.", "Fragrance", 4, 0, "Fragrance.",
+                                "warning");
 
                 // Z
-                createIngredient("Zinc Oxide", "Physical sunscreen filter and skin protectant.", "Sunscreen", 1,
-                                "safe");
+                createIngredient("Zinc Oxide", "Physical sunscreen filter and skin protectant.", "Sunscreen", 1, 1,
+                                "UV protection, soothing.", "safe");
         }
 
         private void seedProducts() {
@@ -293,15 +322,16 @@ public class DataSeeder implements CommandLineRunner {
                 }
         }
 
-        private void createIngredient(String name, String desc, String func, int safety, String alert) {
-                if (ingredientRepository.findByName(name).isEmpty()) {
-                        Ingredient i = new Ingredient();
-                        i.setName(name);
-                        i.setDescription(desc);
-                        i.setFunctionality(func);
-                        i.setSafetyRating(safety);
-                        i.setAlertType(alert);
-                        ingredientRepository.save(i);
-                }
+        private void createIngredient(String name, String desc, String func, int safety, int comedogenic,
+                        String benefits, String alert) {
+                Ingredient i = ingredientRepository.findByName(name).orElse(new Ingredient());
+                i.setName(name);
+                i.setDescription(desc);
+                i.setFunctionality(func);
+                i.setSafetyRating(safety);
+                i.setComedogenicRating(comedogenic);
+                i.setBenefits(benefits);
+                i.setAlertType(alert);
+                ingredientRepository.save(i);
         }
 }
