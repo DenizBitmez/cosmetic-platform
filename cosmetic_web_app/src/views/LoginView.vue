@@ -43,6 +43,16 @@
             </div>
           </div>
 
+          <!-- Session Expired Warning -->
+          <div v-if="sessionExpired" class="bg-amber-50 border-l-4 border-amber-500 p-4">
+             <div class="flex">
+                <div class="ml-3">
+                  <p class="text-sm text-amber-700 font-bold">Session Expired</p>
+                  <p class="text-sm text-amber-700">Your session has expired. Please log in again.</p>
+                </div>
+             </div>
+          </div>
+
           <!-- Error Message Display -->
           <div v-if="authStore.error" class="bg-red-50 border-l-4 border-red-500 p-4">
              <div class="flex">
@@ -52,13 +62,7 @@
                 </div>
              </div>
           </div>
-
-          <div class="space-y-4">
-            <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-medium rounded-sm text-white bg-brand-dark hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold transition-all duration-300 uppercase tracking-widest">
-              Sign In
-            </button>
-            
-            <a href="http://localhost:8081/oauth2/authorization/google" class="group relative w-full flex justify-center py-4 px-4 border border-gray-300 text-sm font-medium rounded-sm text-white bg-brand-dark hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold transition-all duration-300 uppercase tracking-widest">
+ <a href="http://localhost:8081/oauth2/authorization/google" class="group relative w-full flex justify-center py-4 px-4 border border-gray-300 text-sm font-medium rounded-sm text-white bg-brand-dark hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold transition-all duration-300 uppercase tracking-widest">
                 <svg class="h-5 w-5 mr-2" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                     <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
                     <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
@@ -69,6 +73,10 @@
                 </svg>
                 Sign in with Google
             </a>
+          <div class="space-y-4">
+            <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-medium rounded-sm text-white bg-brand-dark hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-gold transition-all duration-300 uppercase tracking-widest">
+              Sign In
+            </button>
           </div>
           
            <div class="text-center mt-4">
@@ -93,7 +101,14 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 
+const sessionExpired = ref(route.query.session === 'expired');
+
 onMounted(async () => {
+    // If session expired, ensure auth state is fully cleared
+    if (sessionExpired.value) {
+        authStore.logout();
+    }
+
     if (route.query.oauth_email) {
         console.log("Found OAuth Email:", route.query.oauth_email);
         const name = route.query.oauth_name || 'Google User';

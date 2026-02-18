@@ -61,21 +61,40 @@
                                <PhWarning :size="14" class="text-red-500" />
                                My Allergies
                            </h4>
-                           <p class="text-[10px] text-gray-500 mb-3 italic">Enter ingredients you are allergic to (comma separated).</p>
-                           <div class="flex gap-2">
+                           <p class="text-[10px] text-gray-500 mb-3 italic">Enter ingredients you are allergic to and press Enter.</p>
+                           
+                           <!-- Input Area -->
+                           <div class="flex gap-2 mb-3">
                               <input 
-                                 v-model="userAllergies" 
+                                 v-model="newAllergyInput" 
+                                 @keydown.enter.prevent="addAllergy"
                                  type="text" 
-                                 placeholder="e.g. Paraben, Alcohol" 
+                                 placeholder="Type allergen and press Enter..." 
                                  class="flex-1 bg-white border border-brand-gold/20 rounded-lg px-3 py-1.5 text-xs focus:ring-1 focus:ring-brand-gold outline-none"
                               >
                               <button 
-                                 @click="saveAllergies" 
-                                 :disabled="savingAllergies"
+                                 @click="addAllergy" 
+                                 :disabled="!newAllergyInput"
                                  class="bg-brand-dark text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-black disabled:opacity-50 transition-all"
                               >
-                                 {{ savingAllergies ? '...' : 'Save' }}
+                                 Add
                               </button>
+                           </div>
+
+                           <!-- Tags Display -->
+                           <div class="flex flex-wrap gap-2">
+                               <div v-for="(allergy, index) in allergyTags" :key="index" class="bg-red-50 text-red-700 px-2 py-1 rounded-md text-xs font-medium border border-red-100 flex items-center gap-1 group">
+                                   {{ allergy }}
+                                   <button @click="removeAllergy(index)" class="text-red-400 hover:text-red-600 focus:outline-none">
+                                       <PhX :size="12" weight="bold" />
+                                   </button>
+                               </div>
+                               <span v-if="allergyTags.length === 0" class="text-xs text-gray-400 italic">No allergies added.</span>
+                           </div>
+
+                           <!-- Saving Indicator -->
+                           <div v-if="savingAllergies" class="mt-2 text-[10px] text-brand-gold font-bold animate-pulse text-right">
+                               Saving changes...
                            </div>
                         </div>
                     </div>
@@ -173,6 +192,70 @@
                                 </span>
                             </div>
                         </div>
+                        </div>
+
+                        <!-- NEW: Personalized Routine Section -->
+                        <div class="mt-8 border-t border-brand-cream pt-8">
+                            <h3 class="font-serif text-xl text-brand-dark mb-4 flex items-center gap-2">
+                                <PhSparkle :size="24" class="text-brand-gold" weight="fill" />
+                                Recommended Routine for {{ recommendationStore.skinProfile?.skinType || 'You' }}
+                            </h3>
+                            <p class="text-sm text-gray-500 mb-6">
+                                Based on your skin profile, we recommend this daily regimen. 
+                                <button @click="currentTab = 'routine'" class="text-brand-gold font-bold hover:underline">Customize in My Routine</button>
+                            </p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                                    <h4 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+                                        <PhSun :size="16" class="text-orange-400" weight="fill" /> Morning
+                                    </h4>
+                                    <ul class="space-y-3">
+                                        <li v-for="(step, i) in skinRoutine.morning" :key="i" class="flex items-start gap-3 text-sm text-gray-600">
+                                            <span class="bg-brand-gold/10 text-brand-gold text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5">{{ i + 1 }}</span>
+                                            {{ step }}
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                                    <h4 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+                                        <PhMoon :size="16" class="text-indigo-400" weight="fill" /> Evening
+                                    </h4>
+                                    <ul class="space-y-3">
+                                        <li v-for="(step, i) in skinRoutine.evening" :key="i" class="flex items-start gap-3 text-sm text-gray-600">
+                                            <span class="bg-brand-dark/10 text-brand-dark text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5">{{ i + 1 }}</span>
+                                            {{ step }}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NEW: Top Picks Section -->
+                        <div v-if="recommendedProducts.length > 0" class="mt-8 border-t border-brand-cream pt-8">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-serif text-xl text-brand-dark flex items-center gap-2">
+                                    <PhHeart :size="24" class="text-brand-gold" weight="fill" />
+                                    Top Picks for You
+                                </h3>
+                                <router-link to="/" class="text-xs font-bold uppercase tracking-wide text-brand-gold hover:underline">See All</router-link>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div v-for="product in recommendedProducts" :key="product.id" class="group relative bg-white rounded-lg border border-gray-100 p-2 hover:shadow-lg transition-all">
+                                    <div class="aspect-square bg-gray-50 rounded-md overflow-hidden mb-2">
+                                        <img 
+                                            :src="product.image || 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be'" 
+                                            @error="$event.target.src = 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=400'"
+                                            class="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                                        />
+                                    </div>
+                                    <h4 class="text-xs font-bold text-gray-900 truncate">{{ product.name }}</h4>
+                                    <p class="text-[10px] text-gray-500 truncate">{{ product.product_type || product.category || 'Beauty' }}</p>
+                                    <div class="mt-1 flex justify-between items-center">
+                                        <span class="text-xs font-bold text-brand-gold">${{ product.price }}</span>
+                                        <button @click="addToCart(product)" class="text-[10px] bg-black text-white px-2 py-1 rounded hover:bg-gray-800">Add</button>
+                                    </div>
+                                </div>
+                            </div>
                     </div>
                 </div>
 
@@ -765,9 +848,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useWishlistStore } from '@/stores/wishlist';
+import { useCartStore } from '@/stores/cart';
 import { usePriceAlertStore } from '@/stores/priceAlert';
 import { useUiStore } from '@/stores/ui';
 import { useRouter } from 'vue-router';
@@ -786,6 +870,7 @@ import { PhCoin } from '@phosphor-icons/vue';
 
 const authStore = useAuthStore();
 const wishlistStore = useWishlistStore();
+const cartStore = useCartStore();
 const priceAlertStore = usePriceAlertStore();
 const recommendationStore = useRecommendationStore();
 const loyaltyStore = useLoyaltyStore();
@@ -797,17 +882,55 @@ const showAddressModal = ref(false);
 const showCardModal = ref(false);
 const isCardFlipped = ref(false);
 const userAllergies = ref(authStore.user?.allergies || '');
+const newAllergyInput = ref('');
 const savingAllergies = ref(false);
 
-const saveAllergies = async () => {
-    savingAllergies.value = true;
-    const success = await authStore.updateAllergies(userAllergies.value);
-    if (success) {
-        uiStore.notify("Allergies updated successfully!");
-    } else {
-        uiStore.notify("Failed to update allergies.", 'error');
+// Computed property to handle tags array <-> string conversion
+const allergyTags = computed(() => {
+    if (!userAllergies.value) return [];
+    return userAllergies.value.split(',').map(s => s.trim()).filter(Boolean);
+});
+
+const addAllergy = async () => {
+    if (!newAllergyInput.value.trim()) return;
+    
+    const currentTags = [...allergyTags.value];
+    const newTag = newAllergyInput.value.trim();
+    
+    // Prevent duplicates
+    if (currentTags.find(t => t.toLowerCase() === newTag.toLowerCase())) {
+        uiStore.notify("This allergy is already added.", 'warning');
+        newAllergyInput.value = '';
+        return;
     }
-    savingAllergies.value = false;
+    
+    currentTags.push(newTag);
+    await updateAllergiesBackend(currentTags.join(', '));
+    newAllergyInput.value = '';
+};
+
+const removeAllergy = async (index) => {
+    const currentTags = [...allergyTags.value];
+    currentTags.splice(index, 1);
+    await updateAllergiesBackend(currentTags.join(', '));
+};
+
+const updateAllergiesBackend = async (allergiesString) => {
+    savingAllergies.value = true;
+    try {
+        const success = await authStore.updateAllergies(allergiesString);
+        if (success) {
+            userAllergies.value = authStore.user.allergies || '';
+            uiStore.notify("Allergies updated.", 'success', 2000);
+        } else {
+            uiStore.notify("Failed to save changes.", 'error');
+        }
+    } catch (e) {
+        console.error("Error saving allergies:", e);
+        uiStore.notify("Error saving changes.", 'error');
+    } finally {
+        savingAllergies.value = false;
+    }
 };
 
 onMounted(async () => {
@@ -817,6 +940,54 @@ onMounted(async () => {
         await loyaltyStore.fetchHistory();
     }
 });
+
+// Computed properties for skin routine
+const skinRoutine = computed(() => {
+    const type = recommendationStore.skinProfile?.skinType || 'NORMAL';
+    
+    const routines = {
+        'OILY': {
+            morning: ['Gel Cleanser', 'Salicylic Acid Toner', 'Lightweight Gel Moisturizer', 'Mattifying SPF 50'],
+            evening: ['Double Cleanse (Oil + Foam)', 'Niacinamide Serum', 'Oil-free Moisturizer']
+        },
+        'DRY': {
+            morning: ['Cream Cleanser', 'Hyaluronic Acid Serum', 'Rich Moisturizer', 'Hydrating SPF 50'],
+            evening: ['Cleansing Balm', 'Gentle Exfoliant (AHA)', 'Face Oil + Night Cream']
+        },
+        'COMBINATION': {
+            morning: ['Gentle Foam Cleanser', 'Vitamin C Serum', 'Light Moisturizer', 'SPF 50'],
+            evening: ['Gel Cleanser', 'BHA for T-Zone', 'Hydrating Serum', 'Medium-weight Cream']
+        },
+        'SENSITIVE': {
+            morning: ['Micellar Water / Water Rinse', 'Soothing Serum (Cica)', 'Barrier Repair Cream', 'Mineral SPF 50'],
+            evening: ['Gentle Milk Cleanser', 'Azelaic Acid (if tolerated)', 'Calming Night Mask']
+        },
+        'NORMAL': {
+            morning: ['Gentle Cleanser', 'Vitamin C', 'Moisturizer', 'SPF 30+'],
+            evening: ['Cleanser', 'Retinol (2-3x/week)', 'Night Cream']
+        }
+    };
+    
+    return routines[type] || routines['NORMAL'];
+});
+
+const recommendedProducts = computed(() => {
+    return recommendationStore.recommendations.slice(0, 4);
+});
+
+const addToCart = async (product) => {
+    if (!authStore.isAuthenticated) {
+        router.push('/login');
+        return;
+    }
+    const success = await cartStore.addToCart(product.id, 1, product);
+    if (success) {
+        uiStore.notify("Added to cart!", 'success');
+        cartStore.toggleDrawer(true);
+    } else {
+        uiStore.notify("Failed to add to cart.", 'error');
+    }
+};
 
 const navItems = [
     { id: 'overview', name: 'Overview', icon: PhUser },

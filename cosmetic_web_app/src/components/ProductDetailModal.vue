@@ -646,19 +646,7 @@ const checkWishlistStatus = async () => {
 };
 
 const toggleComparison = () => {
-    const productId = typeof props.product.id === 'string' ? parseInt(props.product.id) : props.product.id;
-    
-    // Check if it's a valid numeric product
-    if (isNaN(productId)) {
-        uiStore.notify("External products cannot be added to comparison yet", 'info');
-        return;
-    }
-
-    // Check if it's an external product
-    if (props.product.api_featured_image || props.product.product_link) {
-        uiStore.notify("External API products cannot be compared", 'info');
-        return;
-    }
+    const productId = props.product.id;
 
     const result = comparisonStore.toggleComparison({
         id: productId,
@@ -681,10 +669,7 @@ const toggleComparison = () => {
 
 const checkComparisonStatus = () => {
     if (props.product) {
-        const productId = typeof props.product.id === 'string' ? parseInt(props.product.id) : props.product.id;
-        if (!isNaN(productId)) {
-            isInComparison.value = comparisonStore.isInComparison(productId);
-        }
+        isInComparison.value = comparisonStore.isInComparison(props.product.id);
     }
 };
 

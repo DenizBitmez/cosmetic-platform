@@ -80,6 +80,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/user/**").permitAll()
                                                 .requestMatchers("/api/wishlist/**").permitAll()
                                                 .requestMatchers("/api/price-alert/**").permitAll()
+                                                .requestMatchers("/actuator/**").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/user/add")
                                                 .hasAnyRole("ADMIN", "CLIENT")
                                                 .requestMatchers("/api/auth/forgot-password",
