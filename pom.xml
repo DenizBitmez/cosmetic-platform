@@ -108,6 +108,12 @@
 			<version>26.1.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.10.0</version>
+		</dependency>
+
 		<!-- Actuator & Prometheus Monitoring -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

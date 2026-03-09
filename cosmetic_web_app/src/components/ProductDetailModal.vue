@@ -3,19 +3,19 @@
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
       <div class="fixed inset-0 bg-gray-900 bg-opacity-80 transition-opacity backdrop-blur-sm" @click="$emit('close')"></div>
 
-      <div class="relative inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+      <div class="relative flex flex-col bg-white text-left overflow-hidden shadow-2xl transform transition-all w-full h-full sm:h-[85vh] sm:rounded-2xl sm:my-8 sm:align-middle sm:max-w-5xl">
         <button @click="$emit('close')" class="absolute top-4 right-4 z-10 bg-black/20 rounded-full p-2 hover:bg-black/40 text-white transition-colors">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 h-full">
+        <div class="flex flex-col md:flex-row h-full overflow-hidden">
           <!-- Image Section -->
-          <div class="bg-gray-50 p-8 flex items-center justify-center border-r border-gray-100">
-            <img :src="product.image" @error="$event.target.src='https://via.placeholder.com/300?text=No+Image'" class="max-h-[400px] object-contain drop-shadow-xl" />
+          <div class="w-full md:w-1/2 h-48 md:h-auto bg-gray-50 p-4 md:p-8 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 shrink-0">
+            <img :src="product.image" @error="$event.target.src='https://via.placeholder.com/300?text=No+Image'" class="max-h-full object-contain drop-shadow-xl transition-transform duration-500 hover:scale-105" />
           </div>
 
           <!-- Info Section -->
-          <div class="p-6 md:p-8 flex flex-col h-full overflow-hidden">
+          <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col flex-1 overflow-hidden relative">
             <!-- Header -->
             <div class="mb-4">
               <div class="flex items-center justify-between mb-2">
@@ -46,8 +46,12 @@
               </button>
             </div>
 
-            <!-- TAB CONTENT: OVERVIEW (First Tab) -->
-            <div v-show="activeTab === 'overview'" class="overflow-y-auto pr-2 custom-scrollbar flex-1 pb-20">
+            <!-- TAB CONTENTS (Scrollable Area) -->
+            <div class="overflow-y-auto pr-2 custom-scrollbar flex-1 pb-32 relative">
+             <transition name="fade" mode="out-in">
+              
+              <!-- TAB CONTENT: OVERVIEW (First Tab) -->
+            <div v-if="activeTab === 'overview'" class="w-full" key="overview">
               
               <!-- Rating & Reviews (Mocked/Real) -->
               <div class="flex items-center mb-6">
@@ -93,10 +97,37 @@
                     <p class="text-sm font-medium text-brand-dark">{{ product.paoMonths }} Months after opening</p>
                  </div>
               </div>
-            </div>
 
-            <!-- TAB CONTENT: ANALYSIS (Table Style) -->
-            <div v-show="activeTab === 'analysis'" class="overflow-y-auto pr-2 custom-scrollbar flex-1 pb-20">
+              <!-- BUNDLE DEALS SECTION -->
+              <div v-if="bundleStore.bundles.length > 0" class="mt-8 border-t border-gray-100 pt-8 px-2 pb-8">
+                   <h3 class="text-lg font-serif text-gray-900 mb-4 flex items-center gap-2">
+                      <PhPackage :size="24" weight="duotone" class="text-brand-gold" /> Frequently Bought Together
+                   </h3>
+                   <div v-for="bundle in bundleStore.bundles" :key="bundle.id" class="bg-gradient-to-br from-brand-cream/30 to-white border border-brand-gold/20 rounded-xl p-4 shadow-sm mb-4">
+                       <div class="flex items-center justify-between mb-4">
+                           <div>
+                               <h4 class="font-bold text-gray-900">{{ bundle.name }}</h4>
+                               <p class="text-xs text-green-600 font-bold bg-green-50 px-2 py-1 rounded-full inline-block mt-1">Save {{ (bundle.discountPercentage * 100).toFixed(0) }}%</p>
+                           </div>
+                           <button @click="handleAddBundle(bundle)" class="bg-black text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors uppercase tracking-wider">
+                               Add All to Cart
+                           </button>
+                       </div>
+                       <div class="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
+                           <div v-for="bp in bundle.products" :key="bp.id" class="flex-shrink-0 w-24 flex flex-col items-center">
+                               <div class="w-20 h-20 bg-white rounded-lg border border-gray-100 p-2 flex items-center justify-center mb-2">
+                                   <img :src="bp.image" class="max-h-full max-w-full object-contain">
+                               </div>
+                               <p class="text-[10px] text-center font-medium line-clamp-2 leading-tight">{{ bp.name }}</p>
+                               <p class="text-[10px] text-gray-400 mt-1">${{ bp.price }}</p>
+                           </div>
+                       </div>
+                   </div>
+              </div>
+              </div>
+
+              <!-- TAB CONTENT: ANALYSIS (Table Style) -->
+              <div v-else-if="activeTab === 'analysis'" class="w-full" key="analysis">
               
               <div v-if="ingredients && ingredients.length > 0">
                 <div class="overflow-hidden border border-gray-200 rounded-lg">
@@ -133,8 +164,9 @@
 
             </div>
             
-            <!-- TAB CONTENT: MANUAL ANALYSIS -->
-            <div v-show="activeTab === 'manual'" class="overflow-y-auto pr-2 custom-scrollbar flex-1 pb-20 mt-4">
+            
+              <!-- TAB CONTENT: MANUAL ANALYSIS -->
+              <div v-else-if="activeTab === 'manual'" class="w-full mt-4" key="manual">
                <div class="space-y-4">
                   <p class="text-xs text-gray-500 italic">Paste ingredients or type them manually to check for risks.</p>
                   <textarea v-model="manualText" rows="4" class="w-full bg-gray-50 border-gray-200 rounded-xl text-xs p-3 focus:ring-brand-gold focus:border-brand-gold" placeholder="Aqua, Glycerin, Paraben..."></textarea>
@@ -143,18 +175,21 @@
                   </button>
 
                   <div v-if="manualResults.length > 0" class="mt-6 space-y-2 border-t border-gray-100 pt-4">
-                      <div v-for="res in manualResults" :key="res.inciName" class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                          <span class="text-xs font-medium text-gray-800">{{ res.inciName }}</span>
-                          <span :class="['px-2 py-0.5 text-[10px] font-bold rounded-full', getScoreColorClass(res.score)]">
-                            {{ res.score }}
-                          </span>
+                      <div v-for="res in manualResults" :key="res.name" class="flex flex-col p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                          <div class="flex items-center justify-between">
+                              <span class="text-xs font-bold text-gray-800">{{ res.name }}</span>
+                              <span :class="['px-2 py-0.5 text-[10px] font-bold rounded-full', getNumericalScoreColorClass(res.safetyRating)]">
+                                {{ getRiskLabel(res.safetyRating) }}
+                              </span>
+                          </div>
+                          <span class="text-[10px] text-gray-500 mt-1 italic" v-if="res.description">{{ res.description }}</span>
                       </div>
                   </div>
                </div>
             </div>
 
-            <!-- TAB CONTENT: COMMUNITY PHOTOS -->
-            <div v-show="activeTab === 'photos'" class="overflow-y-auto pr-2 custom-scrollbar flex-1 pb-20 mt-4">
+              <!-- TAB CONTENT: COMMUNITY PHOTOS -->
+              <div v-else-if="activeTab === 'photos'" class="w-full mt-4" key="photos">
                 <div class="flex justify-between items-center mb-4">
                     <p class="text-xs text-gray-500">Real results from our community.</p>
                     <button @click="showUploadModal = true" class="text-xs bg-brand-gold text-white px-3 py-1.5 rounded-full font-bold hover:bg-brand-dark transition-colors flex items-center gap-1">
@@ -190,8 +225,8 @@
                 </div>
             </div>
 
-            <!-- TAB CONTENT: Q&A -->
-            <div v-show="activeTab === 'qa'" class="overflow-y-auto pr-2 custom-scrollbar flex-1 pb-20 mt-4">
+              <!-- TAB CONTENT: Q&A -->
+              <div v-else-if="activeTab === 'qa'" class="w-full mt-4" key="qa">
                 <div class="bg-blue-50 p-4 rounded-xl mb-6">
                     <h3 class="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
                         <PhQuestion :size="18" weight="bold" /> Ask a Question
@@ -264,33 +299,9 @@
                         </div>
                     </div>
                 </div>
-            </div>
+              </div>
 
-            <!-- BUNDLE DEALS SECTION -->
-            <div v-if="bundleStore.bundles.length > 0 && activeTab === 'overview'" class="mt-8 border-t border-gray-100 pt-8 px-2 pb-8">
-                 <h3 class="text-lg font-serif text-gray-900 mb-4 flex items-center gap-2">
-                    <PhPackage :size="24" weight="duotone" class="text-brand-gold" /> Frequently Bought Together
-                 </h3>
-                 <div v-for="bundle in bundleStore.bundles" :key="bundle.id" class="bg-gradient-to-br from-brand-cream/30 to-white border border-brand-gold/20 rounded-xl p-4 shadow-sm">
-                     <div class="flex items-center justify-between mb-4">
-                         <div>
-                             <h4 class="font-bold text-gray-900">{{ bundle.name }}</h4>
-                             <p class="text-xs text-green-600 font-bold bg-green-50 px-2 py-1 rounded-full inline-block mt-1">Save {{ (bundle.discountPercentage * 100).toFixed(0) }}%</p>
-                         </div>
-                         <button @click="handleAddBundle(bundle)" class="bg-black text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors uppercase tracking-wider">
-                             Add All to Cart
-                         </button>
-                     </div>
-                     <div class="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
-                         <div v-for="bp in bundle.products" :key="bp.id" class="flex-shrink-0 w-24 flex flex-col items-center">
-                             <div class="w-20 h-20 bg-white rounded-lg border border-gray-100 p-2 flex items-center justify-center mb-2">
-                                 <img :src="bp.image" class="max-h-full max-w-full object-contain">
-                             </div>
-                             <p class="text-[10px] text-center font-medium line-clamp-2 leading-tight">{{ bp.name }}</p>
-                             <p class="text-[10px] text-gray-400 mt-1">${{ bp.price }}</p>
-                         </div>
-                     </div>
-                 </div>
+             </transition>
             </div>
 
             <PhotoUploadModal 
@@ -303,7 +314,7 @@
             <PriceAlertModal :show="showPriceAlertModal" :product="product" @close="showPriceAlertModal = false" @created="onPriceAlertCreated" />
 
             <!-- Sticky Footer (Buttons) -->
-            <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 bg-white border-t border-gray-100 flex gap-3">
+            <div class="absolute bottom-0 left-0 right-0 py-6 px-6 md:px-8 bg-white border-t border-gray-100 flex gap-3 z-10">
               <button @click="toggleWishlist" :disabled="addingToWishlist" class="flex-shrink-0 bg-white border-2 text-center py-4 px-4 rounded-lg text-sm font-bold transition-colors shadow-lg flex items-center justify-center" :class="isInWishlist ? 'border-red-500 text-red-500 hover:bg-red-50' : 'border-gray-300 text-gray-600 hover:border-red-500 hover:text-red-500'">
                 <PhHeart :size="20" :weight="isInWishlist ? 'fill' : 'regular'" />
               </button>
@@ -504,12 +515,28 @@ const keyBenefits = computed(() => {
 
 const getScoreColorClass = (score) => {
     if (!score) return 'bg-gray-100 text-gray-800';
-    const s = score.toLowerCase();
+    const s = score.toString().toLowerCase();
     if (s.includes('very good') || s.includes('çok iyi')) return 'bg-green-600 text-white';
     if (s.includes('good') || s.includes('iyi')) return 'bg-blue-500 text-white';
     if (s.includes('average') || s.includes('orta')) return 'bg-yellow-500 text-white';
     if (s.includes('risky') || s.includes('riskli')) return 'bg-red-500 text-white';
     return 'bg-gray-200 text-gray-800';
+};
+
+const getNumericalScoreColorClass = (rating) => {
+    if (rating === undefined || rating === null) return 'bg-gray-200 text-gray-800';
+    if (rating >= 8) return 'bg-red-600 text-white animate-pulse shadow-md shadow-red-500/50';
+    if (rating >= 4) return 'bg-yellow-500 text-white';
+    if (rating > 0) return 'bg-green-500 text-white';
+    return 'bg-gray-200 text-gray-800';
+};
+
+const getRiskLabel = (rating) => {
+    if (rating === undefined || rating === null) return 'Unknown';
+    if (rating >= 8) return 'TOXIC RISK (KAGGLE)';
+    if (rating >= 4) return 'Moderate Risk';
+    if (rating > 0) return 'Safe';
+    return 'Unknown';
 };
 
 const checkAllergies = () => {
@@ -799,8 +826,19 @@ const handleAnswerQuestion = async (questionId) => {
 </script>
 
 <style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
+  height: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: #f1f1f1;

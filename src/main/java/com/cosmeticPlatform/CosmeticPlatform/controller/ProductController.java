@@ -53,20 +53,12 @@ public class ProductController {
     @GetMapping("/all")
     public ResponseEntity<List<Product>> getAllProduct() {
         List<Product> product = productService.getAllProduct();
-
-        if (product.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
         return ResponseEntity.ok(product);
     }
 
     @GetMapping("/category/{category}")
     public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable String category) {
         List<Product> products = productService.getProductsByCategory(category);
-        if (products.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(products);
     }
 

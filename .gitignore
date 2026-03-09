@@ -5,6 +5,10 @@ target/
 !**/src/test/**/target/
 application-secret.properties
 
+# Local datasets
+chemicals-in-cosmetics.csv
+src/main/resources/data/chemicals-in-cosmetics.csv
+
 ### STS ###
 .apt_generated
 .classpath
