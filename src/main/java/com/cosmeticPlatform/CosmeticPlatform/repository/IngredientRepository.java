@@ -1,6 +1,8 @@
 package com.cosmeticPlatform.CosmeticPlatform.repository;
 
 import com.cosmeticPlatform.CosmeticPlatform.model.Ingredient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,6 +14,8 @@ public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
     Optional<Ingredient> findByName(String name);
 
     List<Ingredient> findByNameContainingIgnoreCase(String name);
+
+    Page<Ingredient> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     boolean existsByNameIgnoreCase(String name);
 

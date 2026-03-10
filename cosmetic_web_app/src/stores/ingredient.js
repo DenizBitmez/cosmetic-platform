@@ -8,6 +8,11 @@ export const useIngredientStore = defineStore('ingredient', {
         currentIngredient: null,
         loading: false,
         error: null,
+        currentPage: 0,
+        totalPages: 0,
+        totalElements: 0,
+        currentSearchPage: 0,
+        totalSearchPages: 0
     }),
 
     getters: {
@@ -29,11 +34,18 @@ export const useIngredientStore = defineStore('ingredient', {
     },
 
     actions: {
-        async fetchAllIngredients() {
+        async fetchAllIngredients(page = 0, size = 30, reset = true) {
             this.loading = true;
             try {
-                const response = await api.get('/ingredients');
-                this.ingredients = response.data;
+                const response = await api.get('/ingredients', { params: { page, size } });
+                if (reset) {
+                    this.ingredients = response.data.content;
+                } else {
+                    this.ingredients = [...this.ingredients, ...response.data.content];
+                }
+                this.currentPage = response.data.number;
+                this.totalPages = response.data.totalPages;
+                this.totalElements = response.data.totalElements;
             } catch (err) {
                 this.error = 'Failed to load ingredients';
                 console.error(err);
@@ -42,15 +54,17 @@ export const useIngredientStore = defineStore('ingredient', {
             }
         },
 
-        async searchIngredients(query) {
+        async searchIngredients(query, page = 0, size = 30) {
             if (!query) {
                 this.searchResults = [];
                 return;
             }
             this.loading = true;
             try {
-                const response = await api.get('/ingredients/search', { params: { query } });
-                this.searchResults = response.data;
+                const response = await api.get('/ingredients/search', { params: { query, page, size } });
+                this.searchResults = response.data.content;
+                this.currentSearchPage = response.data.number;
+                this.totalSearchPages = response.data.totalPages;
             } catch (err) {
                 console.error(err);
             } finally {

@@ -72,6 +72,18 @@
           </div>
       </div>
 
+      <!-- Load More -->
+      <div v-if="ingredientStore.currentPage < ingredientStore.totalPages - 1" class="text-center mt-12 mb-8">
+          <button 
+              @click="loadMore"
+              :disabled="ingredientStore.loading"
+              class="px-8 py-3 bg-white border-2 border-brand-gold/30 text-brand-dark rounded-full text-sm font-bold hover:bg-brand-gold hover:text-white transition-all disabled:opacity-50"
+          >
+              <span v-if="ingredientStore.loading">Loading...</span>
+              <span v-else>Load Next Letter Group ({{ ingredientStore.ingredients.length }} / {{ ingredientStore.totalElements }})</span>
+          </button>
+      </div>
+
       <!-- Detail Modal -->
       <TransitionRoot appear :show="isModalOpen" as="template">
         <Dialog as="div" @close="closeModal" class="relative z-50">
@@ -156,11 +168,20 @@ const selectedIngredient = ref(null);
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 onMounted(async () => {
-    await ingredientStore.fetchAllIngredients();
+    // Fetch a larger chunk initially so we have a few letters to display
+    await ingredientStore.fetchAllIngredients(0, 300, true);
 });
 
+const loadMore = () => {
+    ingredientStore.fetchAllIngredients(ingredientStore.currentPage + 1, 300, false);
+};
+
 const handleSearch = () => {
-    ingredientStore.searchIngredients(searchQuery.value);
+    if (searchQuery.value.trim().length > 1) {
+        ingredientStore.searchIngredients(searchQuery.value, 0, 50);
+    } else {
+        ingredientStore.searchResults = [];
+    }
 };
 
 const openModal = (ingredient) => {
