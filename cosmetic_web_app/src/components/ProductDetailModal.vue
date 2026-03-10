@@ -98,6 +98,73 @@
                  </div>
               </div>
 
+              <!-- SUSTAINABILITY PROFILE -->
+              <div v-if="product.overallSustainabilityScore !== undefined" class="mt-8 border-t border-gray-100 pt-8">
+                <h3 class="text-lg font-serif text-gray-900 mb-4 flex items-center gap-2">
+                    <PhPlant :size="24" weight="duotone" class="text-green-600" /> Sustainability Profile
+                </h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <!-- Badges -->
+                  <div class="flex flex-col gap-3">
+                     <div class="flex items-center gap-3 p-3 rounded-lg border border-gray-100" :class="product.isVegan ? 'bg-green-50/50' : 'bg-gray-50 opacity-50'">
+                        <div :class="['p-2 rounded-full', product.isVegan ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400']">
+                           <PhPlant :size="20" weight="fill" />
+                        </div>
+                        <div>
+                           <p class="text-sm font-bold text-gray-900 leading-tight">100% Vegan</p>
+                           <p class="text-[10px] text-gray-500">{{ product.isVegan ? 'Contains no animal-derived ingredients.' : 'Not certified vegan.' }}</p>
+                        </div>
+                     </div>
+                     <div class="flex items-center gap-3 p-3 rounded-lg border border-gray-100" :class="product.isCrueltyFree ? 'bg-pink-50/50' : 'bg-gray-50 opacity-50'">
+                        <div :class="['p-2 rounded-full', product.isCrueltyFree ? 'bg-pink-100 text-pink-600' : 'bg-gray-200 text-gray-400']">
+                           <PhPawPrint :size="20" weight="fill" />
+                        </div>
+                        <div>
+                           <p class="text-sm font-bold text-gray-900 leading-tight">Cruelty-Free</p>
+                           <p class="text-[10px] text-gray-500">{{ product.isCrueltyFree ? 'Never tested on animals.' : 'Not certified cruelty-free.' }}</p>
+                        </div>
+                     </div>
+                  </div>
+
+                  <!-- Scores -->
+                  <div class="bg-gray-50 p-4 rounded-xl flex flex-col justify-center border border-gray-100">
+                     <div class="mb-4">
+                        <div class="flex justify-between items-end mb-1">
+                           <p class="text-[10px] font-bold uppercase text-gray-500">Eco-Packaging</p>
+                           <p class="text-sm font-bold text-brand-dark">{{ product.ecoPackagingScore || 0 }}/10</p>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                           <div class="bg-green-500 h-1.5 rounded-full" :style="{ width: `${(product.ecoPackagingScore || 0) * 10}%` }"></div>
+                        </div>
+                     </div>
+                     <div>
+                        <div class="flex justify-between items-end mb-1">
+                           <p class="text-[10px] font-bold uppercase text-gray-500">Carbon Footprint</p>
+                           <p class="text-sm font-bold text-brand-dark">Grade {{ product.carbonFootprintRating || 'N/A' }}</p>
+                        </div>
+                        <div class="flex gap-1">
+                           <div v-for="grade in ['A', 'B', 'C', 'D', 'E']" :key="grade" 
+                                :class="['flex-1 h-1.5 rounded-full', product.carbonFootprintRating === grade ? 'bg-emerald-500' : 'bg-gray-200']">
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                </div>
+
+                <!-- Aggregate Score Bar -->
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 p-4 rounded-xl flex items-center justify-between">
+                   <div>
+                      <p class="text-brand-dark font-bold text-sm">Overall Ethic Score</p>
+                      <p class="text-[10px] justify-center text-gray-500">Based on formulation and packaging</p>
+                   </div>
+                   <div class="text-right">
+                      <span class="text-2xl font-serif text-green-700">{{ product.overallSustainabilityScore || 0 }}</span>
+                      <span class="text-sm text-gray-400 font-bold">/100</span>
+                   </div>
+                </div>
+              </div>
+
               <!-- BUNDLE DEALS SECTION -->
               <div v-if="bundleStore.bundles.length > 0" class="mt-8 border-t border-gray-100 pt-8 px-2 pb-8">
                    <h3 class="text-lg font-serif text-gray-900 mb-4 flex items-center gap-2">
@@ -350,7 +417,7 @@ import { useWishlistStore } from '@/stores/wishlist';
 import { useComparisonStore } from '@/stores/comparison';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
-import { PhClockCounterClockwise, PhCheckCircle, PhShoppingCart, PhHeart, PhScales, PhBell, PhCamera, PhQuestion, PhThumbsUp, PhChatCircle, PhPaperPlaneRight } from '@phosphor-icons/vue';
+import { PhClockCounterClockwise, PhCheckCircle, PhShoppingCart, PhHeart, PhScales, PhBell, PhCamera, PhQuestion, PhThumbsUp, PhChatCircle, PhPaperPlaneRight, PhPlant, PhPawPrint } from '@phosphor-icons/vue';
 import PriceAlertModal from './PriceAlertModal.vue';
 import PhotoUploadModal from './PhotoUploadModal.vue';
 import { useCommunityStore } from '@/stores/community';

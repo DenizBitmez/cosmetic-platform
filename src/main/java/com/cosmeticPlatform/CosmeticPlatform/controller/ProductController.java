@@ -57,8 +57,12 @@ public class ProductController {
     }
 
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable String category) {
-        List<Product> products = productService.getProductsByCategory(category);
+    public ResponseEntity<List<Product>> getProductsByCategory(
+            @PathVariable String category,
+            @RequestParam(required = false) Boolean isVegan,
+            @RequestParam(required = false) Boolean isCrueltyFree) {
+
+        List<Product> products = productService.getProductsByCategory(category, isVegan, isCrueltyFree);
         return ResponseEntity.ok(products);
     }
 

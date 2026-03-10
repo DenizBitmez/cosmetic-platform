@@ -30,4 +30,7 @@ public class Ingredient {
     private String benefits;
 
     private String alertType; // "safe", "warning", "danger" for UI coloring
+
+    // Sustainability
+    private Boolean isVegan = true; // Most cosmetic ingredients are vegan, non-vegan will be explicitly flagged
 }

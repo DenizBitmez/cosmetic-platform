@@ -27,11 +27,27 @@
               <input v-model="searchQuery" type="text" placeholder="Search products, brands..." 
                   class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-shadow">
           </div>
-          <select v-model="sortBy" class="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white cursor-pointer">
+          <select v-model="sortBy" class="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white cursor-pointer min-w-[200px]">
               <option value="featured">Featured</option>
               <option value="price-low">Price: Low to High</option>
               <option value="price-high">Price: High to Low</option>
           </select>
+      </div>
+
+      <!-- Sustainability Filters -->
+      <div class="flex gap-4 mb-8 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <label class="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox" v-model="filterVegan" @change="fetchProducts(selectedCategory)" class="rounded border-gray-300 text-brand-gold focus:ring-brand-gold w-4 h-4 transition-colors">
+              <span class="text-sm font-medium text-gray-700 group-hover:text-black transition-colors flex items-center gap-1">
+                  🌿 Vegan Only
+              </span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox" v-model="filterCrueltyFree" @change="fetchProducts(selectedCategory)" class="rounded border-gray-300 text-brand-gold focus:ring-brand-gold w-4 h-4 transition-colors">
+              <span class="text-sm font-medium text-gray-700 group-hover:text-black transition-colors flex items-center gap-1">
+                  🐰 Cruelty-Free Only
+              </span>
+          </label>
       </div>
 
       <!-- Loading State -->
@@ -44,7 +60,7 @@
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
          <div v-for="product in filteredProducts" :key="product.id" @click="openProduct(product)" class="bg-white border rounded-lg p-4 group hover:shadow-lg transition-all duration-300 cursor-pointer">
              <div class="h-48 relative mb-4 overflow-hidden rounded-md bg-white flex items-center justify-center">
-                 <img :src="product.image" @error="handleImageError(product)" alt="Product Image" class="object-contain h-full w-full group-hover:scale-105 transition-transform duration-500">
+                 <img :src="product.image" @error="$event.target.src='https://via.placeholder.com/300?text=No+Image'" alt="Product Image" class="object-contain h-full w-full group-hover:scale-105 transition-transform duration-500">
              </div>
              <div>
                  <p class="text-xs text-brand-gold font-bold uppercase mb-1">{{ product.brand || 'Generic' }}</p>
@@ -82,27 +98,25 @@ const productStore = useProductStore();
 
 const categories = ['serum', 'cleanser', 'toner', 'cream', 'lipstick', 'mascara', 'foundation', 'eyeliner', 'eyeshadow', 'blush', 'bronzer', 'eyebrow', 'lip_liner', 'nail_polish'];
 const selectedCategory = ref('serum'); // Default category is now Serum to show new items
-const products = computed(() => productStore.categoriesCache[selectedCategory.value] || []);
+
 const loading = computed(() => productStore.loading);
 const selectedProduct = ref(null);
 const searchQuery = ref('');
 const sortBy = ref('featured');
-const activeTab = ref('overview'); // Default tab changed to overview
+
+const filterVegan = ref(false);
+const filterCrueltyFree = ref(false);
+
+const cacheKey = computed(() => `${selectedCategory.value}_vegan${filterVegan.value}_crueltyFree${filterCrueltyFree.value}`);
+const products = computed(() => productStore.categoriesCache[cacheKey.value] || []);
 
 const fetchProducts = async (category) => {
     selectedCategory.value = category;
     try {
-        await productStore.fetchByCategory(category);
+        await productStore.fetchByCategory(category, filterVegan.value, filterCrueltyFree.value);
     } catch (e) {
         console.error("Failed to fetch products", e);
         // Fallback or error handled by store/view
-    }
-};
-
-const handleImageError = (productToRemove) => {
-    if (productStore.categoriesCache[selectedCategory.value]) {
-        productStore.categoriesCache[selectedCategory.value] = 
-            productStore.categoriesCache[selectedCategory.value].filter(p => p.id !== productToRemove.id);
     }
 };
 

@@ -49,6 +49,8 @@ public class DataSeeder implements CommandLineRunner {
                                 "Kills acne bacteria, unclogs pores.", "warning");
                 createIngredient("Beta-Glucan", "Soothing agent and antioxidant.", "Soothing", 1, 0,
                                 "Soothes redness, hydrates, anti-aging.", "safe");
+                createIngredient("Beeswax", "Natural wax produced by honey bees.", "Emollient", 1, 2,
+                                "Protects skin, locks in moisture.", "safe", false);
 
                 // C
                 createIngredient("Caffeine", "Constricts blood vessels, reducing puffiness.", "Antioxidant", 2, 0,
@@ -95,6 +97,8 @@ public class DataSeeder implements CommandLineRunner {
                 // L
                 createIngredient("Lactic Acid", "Gentle AHA exfoliant.", "Exfoliant", 2, 0,
                                 "Gentle exfoliation, hydration.", "safe");
+                createIngredient("Lanolin", "Derived from sheep's wool. Deeply moisturizes.", "Emollient", 1, 4,
+                                "Intense hydration, barrier repair.", "safe", false);
 
                 // M
                 createIngredient("Mandelic Acid", "Gentle AHA suitable for sensitive skin.", "Exfoliant", 2, 0,
@@ -198,6 +202,12 @@ public class DataSeeder implements CommandLineRunner {
                 Ingredient cen = ingredients.stream().filter(i -> i.getName().equals("Centella Asiatica"))
                                 .findFirst()
                                 .orElse(null);
+                Ingredient beeswax = ingredients.stream().filter(i -> i.getName().equals("Beeswax"))
+                                .findFirst()
+                                .orElse(null);
+                Ingredient lanolin = ingredients.stream().filter(i -> i.getName().equals("Lanolin"))
+                                .findFirst()
+                                .orElse(null);
 
                 // --- SERUMS (NEW & IMPROVED) ---
                 saveProductIfMissing("Retinol Rejuvenating Serum", "serum", 59.99, 100, 6,
@@ -265,7 +275,9 @@ public class DataSeeder implements CommandLineRunner {
                 saveProductIfMissing("Ceramide Barrier Cream", "cream", 38.00, 100, 12,
                                 "https://images.unsplash.com/photo-1570194065650-d99fb4b8ccb0?auto=format&fit=crop&q=80&w=1000",
                                 "Deeply hydrating moisturizer designed for barrier repair and protection.",
-                                cer != null ? Arrays.asList(cer) : null);
+                                (cer != null && lanolin != null && beeswax != null)
+                                                ? Arrays.asList(cer, lanolin, beeswax)
+                                                : (cer != null ? Arrays.asList(cer) : null));
 
                 saveProductIfMissing("Centella Soothing Gel", "cream", 26.00, 120, 12,
                                 "https://images.unsplash.com/photo-1556229162-5c63ed9c4ffb?auto=format&fit=crop&q=80&w=1000",
@@ -301,14 +313,59 @@ public class DataSeeder implements CommandLineRunner {
                         p.setPaoMonths(pao);
                         p.setImage(image);
                         p.setDescription(desc);
+
+                        // Deterministic sustainability metrics
+                        p.setIsCrueltyFree(!name.contains("Basic")); // "Basic" brands aren't cruelty free
+
+                        if (category.equalsIgnoreCase("serum")) {
+                                p.setEcoPackagingScore(9); // Glass dropper bottles
+                                p.setCarbonFootprintRating("A");
+                        } else if (category.equalsIgnoreCase("cream")) {
+                                p.setEcoPackagingScore(6); // Mixed packaging
+                                p.setCarbonFootprintRating("C");
+                        } else if (category.equalsIgnoreCase("cleanser") || category.equalsIgnoreCase("toner")) {
+                                p.setEcoPackagingScore(4); // Plastic bottles
+                                p.setCarbonFootprintRating("D");
+                        } else {
+                                p.setEcoPackagingScore(5);
+                                p.setCarbonFootprintRating("C");
+                        }
+
                         if (ings != null)
                                 p.setIngredients(ings);
                         productRepository.save(p);
                 } else {
                         // If already exists but has no ingredients (due to older seeder run), update it
                         Product p = existing.get(0);
+                        boolean updated = false;
+
+                        // Retrofit missing sustainability metrics to existing products during dev
+                        if (p.getIsCrueltyFree() == null || p.getEcoPackagingScore() == null) {
+                                p.setIsCrueltyFree(!name.contains("Basic"));
+
+                                if (category.equalsIgnoreCase("serum")) {
+                                        p.setEcoPackagingScore(9); // Glass dropper bottles
+                                        p.setCarbonFootprintRating("A");
+                                } else if (category.equalsIgnoreCase("cream")) {
+                                        p.setEcoPackagingScore(6); // Mixed packaging
+                                        p.setCarbonFootprintRating("C");
+                                } else if (category.equalsIgnoreCase("cleanser")
+                                                || category.equalsIgnoreCase("toner")) {
+                                        p.setEcoPackagingScore(4); // Plastic bottles
+                                        p.setCarbonFootprintRating("D");
+                                } else {
+                                        p.setEcoPackagingScore(5);
+                                        p.setCarbonFootprintRating("C");
+                                }
+                                updated = true;
+                        }
+
                         if ((p.getIngredients() == null || p.getIngredients().isEmpty()) && ings != null) {
                                 p.setIngredients(ings);
+                                updated = true;
+                        }
+
+                        if (updated) {
                                 productRepository.save(p);
                         }
                 }
@@ -323,7 +380,7 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         private void createIngredient(String name, String desc, String func, int safety, int comedogenic,
-                        String benefits, String alert) {
+                        String benefits, String alert, boolean isVegan) {
                 Ingredient i = ingredientRepository.findByName(name).orElse(new Ingredient());
                 i.setName(name);
                 i.setDescription(desc);
@@ -332,6 +389,12 @@ public class DataSeeder implements CommandLineRunner {
                 i.setComedogenicRating(comedogenic);
                 i.setBenefits(benefits);
                 i.setAlertType(alert);
+                i.setIsVegan(isVegan);
                 ingredientRepository.save(i);
+        }
+
+        private void createIngredient(String name, String desc, String func, int safety, int comedogenic,
+                        String benefits, String alert) {
+                createIngredient(name, desc, func, safety, comedogenic, benefits, alert, true);
         }
 }

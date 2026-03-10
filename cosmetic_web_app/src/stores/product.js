@@ -33,8 +33,10 @@ export const useProductStore = defineStore('product', {
             }
         },
 
-        async fetchByCategory(category) {
-            if (this.categoriesCache[category]) return;
+        async fetchByCategory(category, isVegan = false, isCrueltyFree = false) {
+            // Include filters in cache key to force refetch when filters change
+            const cacheKey = `${category}_vegan${isVegan}_crueltyFree${isCrueltyFree}`;
+            if (this.categoriesCache[cacheKey]) return;
 
             this.loading = true;
             try {
@@ -48,11 +50,30 @@ export const useProductStore = defineStore('product', {
                         externalProducts = data.filter(p =>
                             p.price && parseFloat(p.price) > 0 &&
                             p.image_link && p.image_link.trim().length > 10
-                        ).map(p => ({
-                            ...p,
-                            image: p.image_link.replace('http://', 'https://'),
-                            price: p.price
-                        }));
+                        ).map(p => {
+                            // Deterministically mock sustainability properties based on ID
+                            const mockVegan = p.id % 2 === 0;
+                            const mockCrueltyFree = p.id % 3 !== 0;
+
+                            return {
+                                ...p,
+                                image: p.image_link.replace('http://', 'https://'),
+                                price: p.price,
+                                isVegan: mockVegan,
+                                isCrueltyFree: mockCrueltyFree,
+                                ecoPackagingScore: (p.id % 10) + 1,
+                                carbonFootprintRating: ['A', 'B', 'C', 'D', 'E'][p.id % 5],
+                                overallSustainabilityScore: ((p.id % 5) * 10 + 50)
+                            };
+                        });
+
+                        // Apply filters to external products locally
+                        if (isVegan) {
+                            externalProducts = externalProducts.filter(p => p.isVegan);
+                        }
+                        if (isCrueltyFree) {
+                            externalProducts = externalProducts.filter(p => p.isCrueltyFree);
+                        }
                     }
                 } catch (err) {
                     console.warn(`External API failed for ${category}`, err);
@@ -61,7 +82,11 @@ export const useProductStore = defineStore('product', {
                 // 2. Fetch from Local Backend
                 let localProducts = [];
                 try {
-                    const res = await api.get(`/product/category/${category}`);
+                    const params = {};
+                    if (isVegan) params.isVegan = true;
+                    if (isCrueltyFree) params.isCrueltyFree = true;
+
+                    const res = await api.get(`/product/category/${category}`, { params });
                     if (res.status === 200 && res.data) {
                         localProducts = res.data.map(p => ({
                             ...p,
@@ -74,9 +99,9 @@ export const useProductStore = defineStore('product', {
                 }
 
                 // Combine results
-                this.categoriesCache[category] = [...localProducts, ...externalProducts];
+                this.categoriesCache[cacheKey] = [...localProducts, ...externalProducts];
 
-                if (this.categoriesCache[category].length === 0) {
+                if (this.categoriesCache[cacheKey].length === 0) {
                     throw new Error('No products found in this category');
                 }
 

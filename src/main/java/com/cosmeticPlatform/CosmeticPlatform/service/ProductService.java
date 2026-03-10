@@ -47,8 +47,11 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    public List<Product> getProductsByCategory(String category) {
-        return productRepository.findByCategory(category);
+    public List<Product> getProductsByCategory(String category, Boolean isVegan, Boolean isCrueltyFree) {
+        if (isVegan == null && isCrueltyFree == null) {
+            return productRepository.findByCategory(category);
+        }
+        return productRepository.findByCategoryWithFilters(category, isVegan, isCrueltyFree);
     }
 
     public List<Product> searchProducts(String name) {
