@@ -9,10 +9,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.cosmeticPlatform.CosmeticPlatform.service.ProductService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/product")
+@Tag(name = "Product Management", description = "Endpoints for managing cosmetic products and their sustainability metrics.")
 public class ProductController {
     private final ProductService productService;
 
@@ -23,6 +27,8 @@ public class ProductController {
 
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Add a new product", description = "Creates a new cosmetic product in the system.")
+    @ApiResponse(responseCode = "201", description = "Product successfully created")
     public Product addProduct(@Valid @RequestBody ProductRequestDTO productRequestDTO) {
         Product product = new Product();
         product.setName(productRequestDTO.getName());
@@ -33,10 +39,13 @@ public class ProductController {
         return productService.addProduct(product);
     }
 
-    @GetMapping("/find/{id}")
+    @GetMapping("/{id}")
+    @Operation(summary = "Get product by ID")
+    @ApiResponse(responseCode = "200", description = "Found the product")
+    @ApiResponse(responseCode = "404", description = "Product not found")
     public ResponseEntity<Product> getProductById(@PathVariable Integer id) {
         Product product = productService.getProductById(id);
-        return ResponseEntity.ok(product);
+        return product != null ? ResponseEntity.ok(product) : ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
@@ -57,6 +66,7 @@ public class ProductController {
     }
 
     @GetMapping("/category/{category}")
+    @Operation(summary = "Get products by category", description = "Fetches products filtered by category and optional sustainability metrics (Vegan, Cruelty-Free).")
     public ResponseEntity<List<Product>> getProductsByCategory(
             @PathVariable String category,
             @RequestParam(required = false) Boolean isVegan,

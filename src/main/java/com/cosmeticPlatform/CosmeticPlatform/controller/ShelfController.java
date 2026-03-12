@@ -13,7 +13,6 @@ import java.util.List;
 @RequestMapping("/api/shelf")
 @CrossOrigin(origins = "*")
 public class ShelfController {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ShelfController.class);
     private final UserProductService userProductService;
 
     public ShelfController(UserProductService userProductService) {

@@ -14,19 +14,43 @@ export const useProductStore = defineStore('product', {
 
             this.loading = true;
             try {
-                const response = await fetch('https://makeup-api.herokuapp.com/api/v1/products.json?product_type=nail_polish');
-                if (!response.ok) throw new Error('API Error');
-                const data = await response.json();
+                // 1. Fetch from Local Backend (Latest Arrivals)
+                let localProducts = [];
+                try {
+                    const res = await api.get('/product/all');
+                    if (res.status === 200 && res.data) {
+                        localProducts = res.data.map(p => ({
+                            ...p,
+                            brand: p.brand || 'Premium',
+                            image: p.image || 'https://placehold.co/300x300?text=Beauty+Product'
+                        }));
+                    }
+                } catch (localErr) {
+                    console.warn('Local API failed for latest arrivals', localErr.message);
+                }
 
-                this.latestArrivals = data
-                    .filter(p => p.price && parseFloat(p.price) > 0 && p.image_link && p.image_link.length > 10)
-                    .map(p => ({
-                        ...p,
-                        image: p.image_link.replace('http://', 'https://'),
-                        price: p.price
-                    }));
+                // 2. Fetch from External API
+                let externalProducts = [];
+                try {
+                    const response = await fetch('https://makeup-api.herokuapp.com/api/v1/products.json?product_type=nail_polish');
+                    if (response.ok) {
+                        const data = await response.json();
+                        externalProducts = data
+                            .filter(p => p.price && parseFloat(p.price) > 0 && p.image_link && p.image_link.length > 10)
+                            .map(p => ({
+                                ...p,
+                                image: p.image_link.replace('http://', 'https://'),
+                                price: p.price
+                            }));
+                    }
+                } catch (err) {
+                    console.error('External API failed for latest arrivals', err);
+                }
+
+                // Combine results (Local products first)
+                this.latestArrivals = [...localProducts, ...externalProducts.slice(0, 10)];
             } catch (err) {
-                console.error('Failed to fetch latest arrivals', err);
+                console.error('Unexpected error in fetchLatestArrivals', err);
                 this.error = "Unable to load catalogue.";
             } finally {
                 this.loading = false;

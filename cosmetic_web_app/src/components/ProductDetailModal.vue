@@ -11,7 +11,7 @@
         <div class="flex flex-col md:flex-row h-full overflow-hidden">
           <!-- Image Section -->
           <div class="w-full md:w-1/2 h-48 md:h-auto bg-gray-50 p-4 md:p-8 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 shrink-0">
-            <img :src="product.image" @error="$event.target.src='https://via.placeholder.com/300?text=No+Image'" class="max-h-full object-contain drop-shadow-xl transition-transform duration-500 hover:scale-105" />
+            <img :src="product.image" @error="$event.target.src='https://placehold.co/300x300?text=No+Image'" class="max-h-full object-contain drop-shadow-xl transition-transform duration-500 hover:scale-105" />
           </div>
 
           <!-- Info Section -->
@@ -677,6 +677,9 @@ const addToShelf = async () => {
         
         const isNumericProduct = !isNaN(props.product.id) && !isNaN(parseFloat(props.product.id)) && String(props.product.id).length < 10;
         
+        const imageError = (e) => {
+            e.target.src = 'https://placehold.co/300x300?text=No+Image'
+        }
         const params = {
             userId: userId,
             openedDate: today,

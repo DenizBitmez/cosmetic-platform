@@ -60,7 +60,7 @@
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
          <div v-for="product in filteredProducts" :key="product.id" @click="openProduct(product)" class="bg-white border rounded-lg p-4 group hover:shadow-lg transition-all duration-300 cursor-pointer">
              <div class="h-48 relative mb-4 overflow-hidden rounded-md bg-white flex items-center justify-center">
-                 <img :src="product.image" @error="$event.target.src='https://via.placeholder.com/300?text=No+Image'" alt="Product Image" class="object-contain h-full w-full group-hover:scale-105 transition-transform duration-500">
+                 <img :src="product.image" @error="$event.target.src='https://placehold.co/300x300?text=No+Image'" alt="Product Image" class="object-contain h-full w-full group-hover:scale-105 transition-transform duration-500">
              </div>
              <div>
                  <p class="text-xs text-brand-gold font-bold uppercase mb-1">{{ product.brand || 'Generic' }}</p>
@@ -97,7 +97,7 @@ import ProductDetailModal from '@/components/ProductDetailModal.vue';
 const productStore = useProductStore();
 
 const categories = ['serum', 'cleanser', 'toner', 'cream', 'lipstick', 'mascara', 'foundation', 'eyeliner', 'eyeshadow', 'blush', 'bronzer', 'eyebrow', 'lip_liner', 'nail_polish'];
-const selectedCategory = ref('serum'); // Default category is now Serum to show new items
+const selectedCategory = ref('dermokozmetik'); // Default to Dermokozmetik as requested
 
 const loading = computed(() => productStore.loading);
 const selectedProduct = ref(null);

@@ -49,8 +49,7 @@ public class IngredientController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Ingredient> getIngredientById(@PathVariable Long id) {
-        return ingredientService.getIngredientById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Ingredient ingredient = ingredientService.getIngredientById(id);
+        return ingredient != null ? ResponseEntity.ok(ingredient) : ResponseEntity.notFound().build();
     }
 }
